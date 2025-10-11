@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Solicitar Adopción";
+    var dogId = (int)ViewBag.DogId;
+}
+
+<h2>Solicitud de adopción</h2>
+<p>Completa la solicitud para este perrito.</p>
+
+<form asp-action="Create" method="post">
+    <input type="hidden" name="dogId" value="@dogId" />
+    <!-- Aquí luego puedes agregar campos/validaciones del formulario -->
+    <button type="submit" class="btn btn-primary">Enviar solicitud</button>
+    <a asp-controller="Dogs" asp-action="Details" asp-route-id="@dogId" class="btn btn-secondary">Cancelar</a>
+</form>

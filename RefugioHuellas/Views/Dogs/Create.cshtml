@@ -1,0 +1,59 @@
+﻿@model RefugioHuellas.Models.Dog
+@{
+    ViewData["Title"] = "Crear perro";
+}
+
+<h1>Crear</h1>
+<h4>Dog</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Imagen (subir archivo)</label>
+                <input asp-for="PhotoFile" type="file" class="form-control" />
+                <span asp-validation-for="PhotoFile" class="text-danger"></span>
+                <div class="form-text">Formatos: .jpg .png .gif .webp · Máx 5MB</div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="HealthStatus" class="form-label"></label>
+                <input asp-for="HealthStatus" class="form-control" />
+                <span asp-validation-for="HealthStatus" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="Sterilized" class="form-check-input" />
+                <label asp-for="Sterilized" class="form-check-label"></label>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="IntakeDate" class="form-label"></label>
+                <input asp-for="IntakeDate" class="form-control" />
+                <span asp-validation-for="IntakeDate" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Crear</button>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

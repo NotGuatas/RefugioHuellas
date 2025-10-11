@@ -1,0 +1,71 @@
+﻿@model RefugioHuellas.Models.Dog
+
+@{
+    ViewData["Title"] = "Detalle del perro";
+    bool isAdmin = User.IsInRole("Admin");
+}
+
+<h1>Detalle</h1>
+
+@if (TempData["AdoptOk"] != null)
+{
+    <div class="alert alert-success">@TempData["AdoptOk"]</div>
+}
+
+<div>
+    <h4>@Model.Name</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-4">
+            @if (!string.IsNullOrWhiteSpace(Model.PhotoUrl))
+            {
+                <img src="@Model.PhotoUrl" alt="@Model.Name" class="img-fluid rounded border" />
+            }
+            else
+            {
+                <div class="text-muted">Sin foto</div>
+            }
+        </div>
+        <div class="col-md-8">
+            <dl class="row">
+                <dt class="col-sm-3">Descripción</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+
+                <dt class="col-sm-3">Salud</dt>
+                <dd class="col-sm-9">@Model.HealthStatus</dd>
+
+                <dt class="col-sm-3">Esterilizado</dt>
+                <dd class="col-sm-9">@(Model.Sterilized ? "Sí" : "No")</dd>
+
+                <dt class="col-sm-3">Ingreso</dt>
+                <dd class="col-sm-9">@Model.IntakeDate</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<p>
+    <a asp-action="Index" class="btn btn-secondary">Volver al listado</a>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a asp-controller="AdoptionApplications"
+           asp-action="Create"
+           asp-route-dogId="@Model.Id"
+           class="btn btn-success ms-2">Adoptar</a>
+    }
+    else
+    {
+        <a href="/Identity/Account/Login?returnUrl=@Uri.EscapeDataString($"/AdoptionApplications/Create?dogId={Model.Id}")"
+           class="btn btn-success ms-2">Adoptar</a>
+    }
+
+    @if (isAdmin)
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning ms-2">Editar</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger ms-2">Eliminar</a>
+    }
+</p>
+    

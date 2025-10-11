@@ -1,0 +1,47 @@
+﻿# Build outputs
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+
+
+
+# VS
+.vs/
+*.swp
+*.sln.ide
+
+# Rider / JetBrains
+.idea/
+*.iml
+
+# Packages
+**/packages/
+*.nupkg
+*.snupkg
+
+# Publish / artifacts
+publish/
+artifacts/
+
+# Secrets
+appsettings.*.local.json
+secrets.json
+
+# SQLite databases (opcional: si quieres versionar tu DB, quita estas líneas)
+*.db
+*.db-shm
+*.db-wal
+
+# Subidas en tiempo de ejecución
+wwwroot/uploads/
+
+# Node (por si luego agregas React)
+node_modules/
+dist/
