@@ -7,7 +7,7 @@ CRUD de perros (solo Admin), solicitudes de adopción, e imágenes subidas a www
 - Git
 
 ## Para Inicializarlo
-'''Bash  
+Bash  
 
 git clone https://github.com/NotGuatas/RefugioHuellas.git
 
