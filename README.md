@@ -3,7 +3,7 @@ Aplicación web MVC para un refugio de perros con autenticación y roles (Admin/
 CRUD de perros (solo Admin), solicitudes de adopción, e imágenes subidas a wwwroot/uploads.
 
 ## Requisitos
-- .NET 8 SDK
+- .NET 9 SDK
 - Git
 
 ## Para Inicializarlo
@@ -22,6 +22,8 @@ Admin seed:
 Email: admin@huellas.com
 
 Password: Admin123$
+
+## Notas
 
 Perfiles de usuario con ASP.NET Core Identity.
 
