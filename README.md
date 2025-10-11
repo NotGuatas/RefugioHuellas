@@ -6,8 +6,8 @@ CRUD de perros (solo Admin), solicitudes de adopción, e imágenes subidas a www
 - .NET 8 SDK
 - Git
 
-## Puesta en marcha
-Bash  
+## Para Inicializarlo
+'''Bash  
 
 git clone https://github.com/NotGuatas/RefugioHuellas.git
 
