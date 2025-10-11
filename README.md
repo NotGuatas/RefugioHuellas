@@ -7,7 +7,7 @@ CRUD de perros (solo Admin), solicitudes de adopción, e imágenes subidas a www
 - Git
 
 ## Puesta en marcha
-`ash
+Bash
 git clone https://github.com/NotGuatas/RefugioHuellas.git
 cd RefugioHuellas
 dotnet ef database update
