@@ -2,14 +2,15 @@
 {
     public class AdoptionApplication
     {
-        public int Id { get; set; }
-        public int DogId { get; set; }
-        public string UserId { get; set; } = string.Empty;
+        public int Id { get; set; }  // Id único de adopción
+        public int DogId { get; set; } // El id del perrito ejemplo 1,2,3,4
+        public string UserId { get; set; } = string.Empty; // Id del usuario 
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public string Status { get; set; } = "Pendiente"; // Pendiente/Aprobado/Rechazado
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Fecha exacta en la que se registro 
+        public string Status { get; set; } = "Pendiente";  // Estado en el que se encuentra la petición de adopción  Pendiente/Aprobado/Rechazado
 
-        // navegación (opcional futuro)
-        public Dog? Dog { get; set; }
+        public Dog? Dog { get; set; } 
+        public int CompatibilityScore { get; set; } = 0; // 0–100
+
     }
 }

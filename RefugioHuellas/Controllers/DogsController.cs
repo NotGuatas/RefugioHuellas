@@ -20,8 +20,11 @@ namespace RefugioHuellas.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            var dogs = await _context.Dogs.ToListAsync();
-            return View(dogs);
+            var dogs = await _context.Dogs
+        .OrderByDescending(d => d.IntakeDate)
+        .ToListAsync();
+         ViewBag.WindowDays = 7; // 👈 añade esto para que la vista sepa el número de días
+          return View(dogs);
         }
 
         [AllowAnonymous]

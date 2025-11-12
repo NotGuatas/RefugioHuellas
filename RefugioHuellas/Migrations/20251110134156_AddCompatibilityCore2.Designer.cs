@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RefugioHuellas.Data;
 
@@ -10,9 +11,11 @@ using RefugioHuellas.Data;
 namespace RefugioHuellas.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251110134156_AddCompatibilityCore2")]
+    partial class AddCompatibilityCore2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -243,51 +246,16 @@ namespace RefugioHuellas.Migrations
                     b.ToTable("AdoptionApplications");
                 });
 
-            modelBuilder.Entity("RefugioHuellas.Models.AdoptionApplicationAnswer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("AdoptionApplicationId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TraitId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AdoptionApplicationId");
-
-                    b.HasIndex("TraitId");
-
-                    b.ToTable("AdoptionApplicationAnswers");
-                });
-
             modelBuilder.Entity("RefugioHuellas.Models.Dog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Breed")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("EnergyLevel")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("HealthStatus")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("IdealEnvironment")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("IntakeDate")
@@ -298,10 +266,6 @@ namespace RefugioHuellas.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PhotoUrl")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Size")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("Sterilized")
@@ -426,25 +390,6 @@ namespace RefugioHuellas.Migrations
                         .IsRequired();
 
                     b.Navigation("Dog");
-                });
-
-            modelBuilder.Entity("RefugioHuellas.Models.AdoptionApplicationAnswer", b =>
-                {
-                    b.HasOne("RefugioHuellas.Models.AdoptionApplication", "AdoptionApplication")
-                        .WithMany()
-                        .HasForeignKey("AdoptionApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RefugioHuellas.Models.PersonalityTrait", "Trait")
-                        .WithMany()
-                        .HasForeignKey("TraitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AdoptionApplication");
-
-                    b.Navigation("Trait");
                 });
 
             modelBuilder.Entity("RefugioHuellas.Models.UserTraitResponse", b =>

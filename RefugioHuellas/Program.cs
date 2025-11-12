@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RefugioHuellas.Data;
+using RefugioHuellas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +27,32 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
+// Servicio de compatibilidad
+builder.Services.AddScoped<CompatibilityService>();
+
 var app = builder.Build();
 
-// Pipeline
+// ===========================================
+//  Migraciones iniciales y seeders
+// ===========================================
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    var db = sp.GetRequiredService<ApplicationDbContext>();
+
+    // Migrar base si aún no está actualizada
+    db.Database.Migrate();
+
+    // Sembrar preguntas de compatibilidad
+    await DataSeeder.SeedCompatibilityAsync(db);
+
+    // Sembrar roles y usuario admin
+    await DataSeeder.SeedRolesAndAdminAsync(sp);
+}
+
+// ===========================================
+//  Pipeline de ejecución
+// ===========================================
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -42,7 +66,7 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
-// ?? Ruta raíz: si hay sesión => /Dogs, si no => /Login
+// Ruta raíz: si hay sesión => /Dogs, si no => /Login
 app.MapGet("/", (HttpContext ctx) =>
 {
     var isAuth = ctx.User?.Identity?.IsAuthenticated == true;
@@ -50,38 +74,12 @@ app.MapGet("/", (HttpContext ctx) =>
     return Results.Redirect(target);
 });
 
-// ?? Ruta por defecto a Dogs
+// Ruta por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Dogs}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 app.MapRazorPages();
-
-// ?? Crear roles y usuario admin por defecto
-using (var scope = app.Services.CreateScope())
-{
-    var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-
-    string[] roles = { "Admin", "User" };
-    foreach (var r in roles)
-        if (!await roleMgr.RoleExistsAsync(r))
-            await roleMgr.CreateAsync(new IdentityRole(r));
-
-    var adminEmail = "admin@huellas.com";
-    var admin = await userMgr.FindByEmailAsync(adminEmail);
-    if (admin == null)
-    {
-        admin = new IdentityUser
-        {
-            UserName = adminEmail,
-            Email = adminEmail,
-            EmailConfirmed = true
-        };
-        await userMgr.CreateAsync(admin, "Admin123$");
-        await userMgr.AddToRoleAsync(admin, "Admin");
-    }
-}
 
 app.Run();

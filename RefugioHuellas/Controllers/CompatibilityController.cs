@@ -1,0 +1,137 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RefugioHuellas.Data;
+using RefugioHuellas.Models;
+using RefugioHuellas.Models.ViewModels;
+using RefugioHuellas.Services;
+
+namespace RefugioHuellas.Controllers
+{
+    [Authorize]
+    public class CompatibilityController : Controller
+    {
+        private readonly ApplicationDbContext _db;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly CompatibilityService _compat;
+
+        private const int WINDOW_DAYS_DEFAULT = 7; // Ventana de adopción por defecto (7 días)
+
+        public CompatibilityController(ApplicationDbContext db, UserManager<IdentityUser> userManager, CompatibilityService compat)
+        {
+            _db = db;
+            _userManager = userManager;
+            _compat = compat;
+        }
+
+        // GET: /Compatibility/Test?dogId=5
+        [HttpGet]
+        public async Task<IActionResult> Test(int dogId)
+        {
+            var userId = _userManager.GetUserId(User)!;
+            var dog = await _db.Dogs.FindAsync(dogId);
+            if (dog == null) return NotFound();
+
+            // 🚫 BLOQUEO DE VENTANA: si el perro ya cumplió 7 días desde su ingreso, no se puede postular
+            if (DateTime.UtcNow >= dog.IntakeDate.AddDays(WINDOW_DAYS_DEFAULT))
+            {
+                TempData["Error"] = $"La ventana de postulaciones para {dog.Name} ya está cerrada.";
+                return RedirectToAction("Details", "Dogs", new { id = dogId });
+            }
+
+            // ✅ Si ya existe solicitud: NO permitir nuevo formulario
+            var existing = await _db.AdoptionApplications
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.UserId == userId && a.DogId == dogId);
+
+            if (existing != null)
+            {
+                TempData["Info"] = $"Ya enviaste una solicitud para {dog.Name}. " +
+                                   $"Compatibilidad: {existing.CompatibilityScore}%. " +
+                                   $"Estado: {existing.Status}. Te informaremos por correo.";
+                return RedirectToAction("Details", "Dogs", new { id = dogId });
+            }
+
+            // Armar formulario (5 preguntas)
+            var traits = await _db.PersonalityTraits
+                                  .Where(t => t.Active)
+                                  .OrderBy(t => t.Id)
+                                  .ToListAsync();
+
+            var vm = new CompatibilityFormVm
+            {
+                DogId = dog.Id,
+                DogName = dog.Name,
+                Answers = traits.Select(t => new CompatibilityAnswerVm
+                {
+                    TraitId = t.Id,
+                    Key = t.Key,
+                    Prompt = t.Prompt ?? t.Name,
+                    Value = t.Key is "housingType" or "space" or "noiseTolerance" ? 5 : 3
+                }).ToList()
+            };
+
+            return View(vm);
+        }
+
+        // POST: /Compatibility/Test
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Test(CompatibilityFormVm vm)
+        {
+            var userId = _userManager.GetUserId(User)!;
+            var dog = await _db.Dogs.FindAsync(vm.DogId);
+            if (dog == null) return NotFound();
+
+            // 🚫 BLOQUEO DE VENTANA: evita guardar solicitudes fuera del plazo
+            if (DateTime.UtcNow >= dog.IntakeDate.AddDays(WINDOW_DAYS_DEFAULT))
+            {
+                TempData["Error"] = $"La ventana de postulaciones para {dog.Name} ya está cerrada.";
+                return RedirectToAction("Details", "Dogs", new { id = vm.DogId });
+            }
+
+            // ✅ Doble verificación anti-duplicado en POST
+            var existing = await _db.AdoptionApplications
+                .FirstOrDefaultAsync(a => a.UserId == userId && a.DogId == vm.DogId);
+
+            if (existing != null)
+            {
+                TempData["Info"] = $"Ya enviaste una solicitud para {dog.Name}. " +
+                                   $"Compatibilidad: {existing.CompatibilityScore}%. " +
+                                   $"Estado: {existing.Status}.";
+                return RedirectToAction("Details", "Dogs", new { id = vm.DogId });
+            }
+
+            // Calcular score en base a las respuestas del formulario
+            int score = await _compat.CalculateFromAnswersAsync(dog, vm.Answers);
+
+            // Crear solicitud
+            var app = new AdoptionApplication
+            {
+                DogId = vm.DogId,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow,
+                Status = "Pendiente",
+                CompatibilityScore = score
+            };
+            _db.AdoptionApplications.Add(app);
+            await _db.SaveChangesAsync();
+
+            // Guardar snapshot de respuestas
+            foreach (var a in vm.Answers)
+            {
+                _db.AdoptionApplicationAnswers.Add(new AdoptionApplicationAnswer
+                {
+                    AdoptionApplicationId = app.Id,
+                    TraitId = a.TraitId,
+                    Value = Math.Clamp(a.Value, 1, 5)
+                });
+            }
+            await _db.SaveChangesAsync();
+
+            TempData["AdoptOk"] = $"Tu solicitud fue enviada. Compatibilidad: {score}%";
+            return RedirectToAction("Details", "Dogs", new { id = vm.DogId });
+        }
+    }
+}

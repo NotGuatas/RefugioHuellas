@@ -1,0 +1,87 @@
+﻿@model IEnumerable<RefugioHuellas.Models.ViewModels.TopMatchVm>
+@{
+    ViewData["Title"] = "Mejores coincidencias (Top 3)";
+    var window = (int)(ViewBag.WindowDays ?? 7);
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<!-- Formulario oculto: conserva la funcionalidad pero no se muestra -->
+<form class="d-none" method="get">
+    <div class="row g-2 mb-3">
+        <div class="col-auto">
+            <label class="col-form-label">Ventana (días)</label>
+        </div>
+        <div class="col-auto">
+            <input type="number" min="1" max="60" name="days" value="@window" class="form-control" />
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary">Aplicar</button>
+        </div>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No hay perros dentro de la ventana.</div>
+}
+else
+{
+    <div class="vstack gap-3">
+        @foreach (var dog in Model)
+        {
+            var start = dog.IntakeDate;
+            var end = dog.IntakeDate.AddDays(window);
+            <div class="card">
+                <div class="card-header fw-bold">
+                    @dog.DogName
+                    <span class="text-muted ms-2">Alta: @dog.IntakeDate.ToLocalTime().ToString("g")</span>
+                    <span class="float-end text-muted">Ventana: @start.ToLocalTime().ToString("g") – @end.ToLocalTime().ToString("g")</span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Compatibilidad</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (dog.TopCandidates.Any())
+                            {
+                                foreach (var c in dog.TopCandidates)
+                                {
+                                    var badge = c.CompatibilityScore >= 75 ? "bg-success text-white"
+                                    : c.CompatibilityScore >= 50 ? "bg-warning text-dark"
+                                    : "bg-danger text-white";
+                                    <tr>
+                                        <td>@c.UserEmail</td>
+                                        <td><span class="badge @badge">@c.CompatibilityScore %</span></td>
+                                        <td>@c.Status</td>
+                                        <td>@c.CreatedAt.ToLocalTime().ToString("g")</td>
+                                        <td class="text-end">
+                                            <a class="btn btn-outline-secondary btn-sm"
+                                               asp-controller="AdoptionApplications"
+                                               asp-action="AdminDetails"
+                                               asp-route-id="@c.ApplicationId">
+                                                Ver
+                                            </a>
+                                            @* (Recordatorio) Sin botón Aprobar aquí *@
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="5" class="text-muted text-center">Sin postulantes en la ventana.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+}
