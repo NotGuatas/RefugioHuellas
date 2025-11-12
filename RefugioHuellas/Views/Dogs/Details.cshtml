@@ -4,6 +4,19 @@
     ViewData["Title"] = "Detalle del perro";
     bool isAdmin = User.IsInRole("Admin");
 }
+@{
+    var ok = TempData["AdoptOk"] as string;
+    var info = TempData["Info"] as string;
+}
+@if (!string.IsNullOrEmpty(ok))
+{
+    <div class="alert alert-success">@ok</div>
+}
+else if (!string.IsNullOrEmpty(info))
+{
+    <div class="alert alert-info">@info</div>
+}
+
 
 <h1>Detalle</h1>
 
@@ -51,10 +64,10 @@
 
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <a asp-controller="AdoptionApplications"
-           asp-action="Create"
+        <a asp-controller="Compatibility"
+           asp-action="Test"
            asp-route-dogId="@Model.Id"
-           class="btn btn-success ms-2">Adoptar</a>
+           class="btn btn-success">Adoptar</a>
     }
     else
     {

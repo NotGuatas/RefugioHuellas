@@ -13,18 +13,60 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
 
+            <!-- Nombre -->
             <div class="mb-3">
-                <label asp-for="Name" class="form-label"></label>
+                <label asp-for="Name" class="form-label">Nombre</label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
+            <!-- Descripción -->
             <div class="mb-3">
-                <label asp-for="Description" class="form-label"></label>
-                <input asp-for="Description" class="form-control" />
+                <label asp-for="Description" class="form-label">Descripción</label>
+                <textarea asp-for="Description" rows="3" class="form-control"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
 
+            <!-- Características -->
+            <h5 class="mt-4">Características</h5>
+
+            <div class="mb-3">
+                <label asp-for="Breed" class="form-label">Raza</label>
+                <input asp-for="Breed" class="form-control" />
+                <span asp-validation-for="Breed" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Size" class="form-label">Tamaño</label>
+                    <select asp-for="Size" class="form-select">
+                        <option value="">-- Seleccione --</option>
+                        <option>Pequeño</option>
+                        <option>Mediano</option>
+                        <option>Grande</option>
+                    </select>
+                    <span asp-validation-for="Size" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="EnergyLevel" class="form-label">Nivel de energía</label>
+                    <input asp-for="EnergyLevel" type="range" min="1" max="5" class="form-range" oninput="document.getElementById('elv2').innerText=this.value" />
+                    <div class="form-text">Valor: <strong id="elv2">@Model?.EnergyLevel</strong> (1 bajo – 5 alto)</div>
+                    <span asp-validation-for="EnergyLevel" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="IdealEnvironment" class="form-label">Entorno ideal</label>
+                <select asp-for="IdealEnvironment" class="form-select">
+                    <option value="">-- Seleccione --</option>
+                    <option>Departamento</option>
+                    <option>Casa con patio</option>
+                </select>
+                <span asp-validation-for="IdealEnvironment" class="text-danger"></span>
+            </div>
+
+            <!-- Foto actual -->
             <div class="mb-3">
                 <label class="form-label">Foto actual</label><br />
                 @if (!string.IsNullOrWhiteSpace(Model.PhotoUrl))
@@ -37,6 +79,7 @@
                 }
             </div>
 
+            <!-- Cambiar imagen -->
             <div class="mb-3">
                 <label class="form-label">Cambiar imagen (subir archivo)</label>
                 <input asp-for="PhotoFile" type="file" class="form-control" />
@@ -44,20 +87,23 @@
                 <div class="form-text">Si no subes archivo, se mantiene la imagen actual.</div>
             </div>
 
+            <!-- Salud -->
             <div class="mb-3">
-                <label asp-for="HealthStatus" class="form-label"></label>
+                <label asp-for="HealthStatus" class="form-label">Estado de salud</label>
                 <input asp-for="HealthStatus" class="form-control" />
                 <span asp-validation-for="HealthStatus" class="text-danger"></span>
             </div>
 
+            <!-- Esterilizado -->
             <div class="form-check mb-3">
                 <input asp-for="Sterilized" class="form-check-input" />
-                <label asp-for="Sterilized" class="form-check-label"></label>
+                <label asp-for="Sterilized" class="form-check-label">Esterilizado</label>
             </div>
 
+            <!-- Fecha de ingreso -->
             <div class="mb-3">
-                <label asp-for="IntakeDate" class="form-label"></label>
-                <input asp-for="IntakeDate" class="form-control" />
+                <label asp-for="IntakeDate" class="form-label">Fecha de ingreso</label>
+                <input asp-for="IntakeDate" type="datetime-local" class="form-control" />
                 <span asp-validation-for="IntakeDate" class="text-danger"></span>
             </div>
 

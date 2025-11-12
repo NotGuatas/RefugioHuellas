@@ -1,0 +1,27 @@
+﻿@model IEnumerable<RefugioHuellas.Models.AdoptionApplication>
+@{
+    ViewData["Title"] = "Mis solicitudes";
+}
+<h2>@ViewData["Title"]</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Perro</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Compatibilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.Dog?.Name</td>
+                <td>@a.CreatedAt.ToLocalTime().ToString("g")</td>
+                <td>@a.Status</td>
+                <td>@a.CompatibilityScore %</td>
+            </tr>
+        }
+    </tbody>
+</table>

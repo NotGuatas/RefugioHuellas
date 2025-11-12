@@ -23,9 +23,37 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Dogs" asp-action="Index">Perros</a>
                         </li>
+
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="AdoptionApplications" asp-action="My">
+                                    Mis solicitudes
+                                </a>
+                            </li>
+
+                            @* Solo visible para administradores *@
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="AdoptionApplications" asp-action="AdminIndex">
+                                        Solicitudes (Admin)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="AdoptionApplications" asp-action="TopMatches">
+                                        Mejores coincidencias
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="AdoptionApplications" asp-action="BestMatches">
+                                         Mejores Candidatos
+                                    </a>
+                                </li>
+                            }
+                        }
                     </ul>
 
-                    <!-- Aquí se muestra login o perfil -->
                     <partial name="_LoginPartial" />
                 </div>
             </div>

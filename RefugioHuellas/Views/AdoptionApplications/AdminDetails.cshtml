@@ -1,0 +1,31 @@
+﻿@model RefugioHuellas.Models.ViewModels.AdminAdoptionDetailVm
+@{
+    ViewData["Title"] = "Solicitud de adopción";
+}
+<h2>@ViewData["Title"]</h2>
+
+<div class="mb-3">
+    <strong>Usuario:</strong> @(Model.UserEmail ?? "(desconocido)")<br />
+    <strong>Perro:</strong> @Model.DogName<br />
+    <strong>Compatibilidad:</strong> @Model.CompatibilityScore %<br />
+    <strong>Estado:</strong> @Model.Status<br />
+    <strong>Fecha:</strong> @Model.CreatedAt.ToLocalTime().ToString("g")
+</div>
+
+<h5>Respuestas del formulario</h5>
+<table class="table">
+    <thead>
+        <tr><th>Pregunta</th><th>Respuesta (1–5 / Sí-No)</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model.Answers)
+        {
+            <tr>
+                <td>@r.Prompt</td>
+                <td>@r.Value</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="AdminIndex" class="btn btn-secondary">Volver</a>
