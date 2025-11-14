@@ -81,61 +81,6 @@ El sistema guarda la solicitud con un puntaje de compatibilidad.
 
 Al finalizar la ventana, el admin aprueba al mejor candidato desde “Mejores Candidatos”.
 
-# Estructura del proyecto
-
-RefugioHuellas/
-│
-
-├── Controllers/
-
-│   ├── DogsController.cs
-
-│   ├── AdoptionApplicationsController.cs
-
-│   └── CompatibilityController.cs
-│
-
-├── Models/
-
-│   ├── Dog.cs
-
-│   ├── AdoptionApplication.cs
-
-│   ├── PersonalityTrait.cs
-
-│   ├── AdoptionApplicationAnswer.cs
-
-│   └── ViewModels/
-
-│       ├── CompatibilityFormVm.cs
-
-│       ├── AdminAdoptionVm.cs
-
-│       ├── TopMatchVm.cs
-
-│       └── BestMatchVm.cs
-
-│
-
-├── Services/
-
-│   └── CompatibilityService.cs
-
-│
-
-├── Views/
-
-│   ├── Dogs/
-
-│   ├── AdoptionApplications/
-
-│   └── Compatibility/
-
-│
-
-└── wwwroot/uploads/  ← imágenes subidas
-
-
 # Requisitos
 
 .NET 9 SDK
