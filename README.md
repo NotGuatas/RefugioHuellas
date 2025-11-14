@@ -14,25 +14,13 @@ Admin: Puede gestionar perros, revisar solicitudes y aprobar adopciones.
 
 Usuario: Puede ver perros disponibles, llenar formularios de compatibilidad y enviar solicitudes.
 
-#  Gestión de perros (CRUD completo)
+#  Gestión de perros
 
 Crear, editar, eliminar y listar perros (solo Admin).
 
 Atributos principales:
 
-Nombre, descripción, foto, salud, fecha de ingreso, esterilización.
-
-Nueva información añadida:
-
-# Raza 
-
-Tamaño (Pequeño, Mediano, Grande)
-
-Nivel de energía (1–5)
-
-Entorno ideal (Departamento, Casa con patio, etc.)
-
-Subida de imágenes al directorio wwwroot/uploads.
+Nombre, descripción,raza, tamaño, Nivel de energía, Entorno ideal, foto, salud, fecha de ingreso, esterilización.
 
 #  Solicitudes de adopción
 
