@@ -87,29 +87,52 @@ RefugioHuellas/
 │
 
 ├── Controllers/
+
 │   ├── DogsController.cs
+
 │   ├── AdoptionApplicationsController.cs
+
 │   └── CompatibilityController.cs
 │
+
 ├── Models/
+
 │   ├── Dog.cs
+
 │   ├── AdoptionApplication.cs
+
 │   ├── PersonalityTrait.cs
+
 │   ├── AdoptionApplicationAnswer.cs
+
 │   └── ViewModels/
+
 │       ├── CompatibilityFormVm.cs
+
 │       ├── AdminAdoptionVm.cs
+
 │       ├── TopMatchVm.cs
+
 │       └── BestMatchVm.cs
+
 │
+
 ├── Services/
+
 │   └── CompatibilityService.cs
+
 │
+
 ├── Views/
+
 │   ├── Dogs/
+
 │   ├── AdoptionApplications/
+
 │   └── Compatibility/
+
 │
+
 └── wwwroot/uploads/  ← imágenes subidas
 
 
