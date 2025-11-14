@@ -5,13 +5,13 @@ using RefugioHuellas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ===========================================
-//  Servicios
-// ===========================================
+// ----------------- Servicios -----------------
+
+// Cadena de conexión (local y Render usan la misma clave "DefaultConnection")
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                        ?? "Data Source=refugio.db";
 
-// Base de datos SQLite
+// DbContext (solo UNA vez)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
@@ -39,26 +39,9 @@ builder.Services.AddScoped<CompatibilityService>();
 var app = builder.Build();
 
 // ===========================================
-//  Migraciones iniciales y seeders
+//  Migraciones + SEED (roles, admin, traits, perros demo)
 // ===========================================
-using (var scope = app.Services.CreateScope())
-{
-    var sp = scope.ServiceProvider;
-    var db = sp.GetRequiredService<ApplicationDbContext>();
-
-    // Aplicar migraciones
-    db.Database.Migrate();
-
-    // Seed de preguntas de compatibilidad
-    await DataSeeder.SeedCompatibilityAsync(db);
-
-    // Seed de roles + usuario admin (admin@huellas.com / Admin123$)
-    await DataSeeder.SeedRolesAndAdminAsync(sp);
-
-    // Si luego creas un método para sembrar perros iniciales,
-    // lo llamarías aquí, por ejemplo:
-    // await DataSeeder.SeedDogsAsync(db);
-}
+await DbSeeder.SeedAsync(app.Services);
 
 // ===========================================
 //  Pipeline de ejecución
@@ -74,10 +57,9 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Static files con el sistema nuevo de .NET 9
 app.MapStaticAssets();
 
-// Ruta raíz: si hay sesión => /Dogs, si no => /Login
+// Ruta raíz: si hay sesión => /Dogs, si no => login
 app.MapGet("/", (HttpContext ctx) =>
 {
     var isAuth = ctx.User?.Identity?.IsAuthenticated == true;
@@ -85,10 +67,10 @@ app.MapGet("/", (HttpContext ctx) =>
     return Results.Redirect(target);
 });
 
-// Ruta por defecto MVC
+// Ruta por defecto
 app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Dogs}/{action=Index}/{id?}")
+    name: "default",
+    pattern: "{controller=Dogs}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 app.MapRazorPages();
