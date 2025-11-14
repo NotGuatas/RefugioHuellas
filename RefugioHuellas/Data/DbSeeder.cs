@@ -28,7 +28,7 @@ namespace RefugioHuellas.Data
                 }
             }
 
-            // 3) Admin
+            // 3) Cuenta admin
             const string adminEmail = "admin@huellas.com";
             const string adminPass = "Admin123$";
 
@@ -49,53 +49,45 @@ namespace RefugioHuellas.Data
                 }
             }
 
-            // 4) Traits de personalidad (solo si no hay)
-            if (!await context.PersonalityTraits.AnyAsync())
+            // 4) Rasgos de compatibilidad (12 preguntas) — SEED INTELIGENTE
+            var traits = new List<PersonalityTrait>
             {
-                context.PersonalityTraits.AddRange(
-                    new PersonalityTrait { Key = "housingType", Name = "Tipo de vivienda", Prompt = "¿Dónde vives actualmente?", Active = true },
-                    new PersonalityTrait { Key = "space", Name = "Espacio disponible", Prompt = "¿Cuánto espacio tiene el perro?", Active = true },
-                    new PersonalityTrait { Key = "noiseTolerance", Name = "Ruido", Prompt = "¿Qué tan tolerante eres al ruido?", Active = true },
-                    new PersonalityTrait { Key = "activityLevel", Name = "Actividad", Prompt = "¿Qué tan activo eres físicamente?", Active = true },
-                    new PersonalityTrait { Key = "experiencePets", Name = "Experiencia", Prompt = "¿Tienes experiencia previa con perros?", Active = true }
-                );
-                await context.SaveChangesAsync();
+                new() { Key = "housingType",     Name = "Tipo de vivienda",            Prompt = "¿Vives en departamento?",                        Weight = 3, Active = true },
+                new() { Key = "space",           Name = "Espacio disponible",          Prompt = "¿Tienes patio o jardín amplio?",                 Weight = 3, Active = true },
+                new() { Key = "time",            Name = "Tiempo libre",                Prompt = "¿Tienes tiempo para paseos diarios?",            Weight = 4, Active = true },
+                new() { Key = "activityLevel",   Name = "Nivel de actividad",          Prompt = "¿Haces actividad física con frecuencia?",        Weight = 4, Active = true },
+                new() { Key = "noiseTolerance",  Name = "Tolerancia al ruido",         Prompt = "¿Toleras ladridos frecuentes?",                  Weight = 2, Active = true },
+                new() { Key = "kidsAtHome",      Name = "Niños en casa",               Prompt = "¿Hay niños pequeños en casa?",                   Weight = 3, Active = true },
+                new() { Key = "otherPets",       Name = "Otras mascotas",              Prompt = "¿Tienes otras mascotas actualmente?",            Weight = 3, Active = true },
+                new() { Key = "allergy",         Name = "Alergias",                    Prompt = "¿Alguien en casa tiene alergia a perros?",       Weight = 2, Active = true },
+                new() { Key = "trainingWilling", Name = "Entrenamiento",               Prompt = "¿Estás dispuesto a entrenar con constancia?",    Weight = 4, Active = true },
+                new() { Key = "travelOften",     Name = "Viajes frecuentes",           Prompt = "¿Viajas o te ausentas de casa con frecuencia?",  Weight = 2, Active = true },
+                new() { Key = "budgetMonthly",   Name = "Presupuesto mensual",         Prompt = "¿Cuentas con presupuesto mensual para el perro?", Weight = 3, Active = true },
+                new() { Key = "fence",           Name = "Cerca/seguridad",             Prompt = "¿Tu patio tiene cerca o medidas de seguridad?",  Weight = 3, Active = true },
+            };
+
+            foreach (var trait in traits)
+            {
+                // Si existe, actualizar
+                var existing = await context.PersonalityTraits
+                    .FirstOrDefaultAsync(t => t.Key == trait.Key);
+
+                if (existing == null)
+                {
+                    // Nuevo
+                    context.PersonalityTraits.Add(trait);
+                }
+                else
+                {
+                    // Actualizar valores si hubo cambios
+                    existing.Name = trait.Name;
+                    existing.Prompt = trait.Prompt;
+                    existing.Weight = trait.Weight;
+                    existing.Active = true;
+                }
             }
 
-            // 5) Perros de ejemplo (solo si está vacío)
-            if (!await context.Dogs.AnyAsync())
-            {
-                context.Dogs.AddRange(
-                    new Dog
-                    {
-                        Name = "Lucas",
-                        Description = "Perrito encontrado por el sector de La Merced.",
-                        HealthStatus = "Con todas sus vacunas y en buen estado.",
-                        Sterilized = true,
-                        IntakeDate = DateTime.UtcNow.AddDays(-5),
-                        Breed = "Mestizo pequeño",
-                        Size = "Pequeño",
-                        EnergyLevel = 4,
-                        IdealEnvironment = "Departamento",
-                        PhotoUrl = "/uploads/lucas.jpg"   // puedes actualizar luego si quieres
-                    },
-                    new Dog
-                    {
-                        Name = "Rocky",
-                        Description = "Muy juguetón, rescatado del Batán Bajo.",
-                        HealthStatus = "Buena salud.",
-                        Sterilized = true,
-                        IntakeDate = DateTime.UtcNow.AddDays(-3),
-                        Breed = "Mestizo mediano",
-                        Size = "Mediano",
-                        EnergyLevel = 5,
-                        IdealEnvironment = "Casa con patio",
-                        PhotoUrl = "/uploads/rocky.jpg"
-                    }
-                    // agrega más si quieres
-                );
-                await context.SaveChangesAsync();
-            }
+            await context.SaveChangesAsync();
         }
     }
 }
