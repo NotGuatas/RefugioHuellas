@@ -52,13 +52,13 @@ Evita duplicados: un usuario no puede solicitar el mismo perro más de una vez.
 
 El Administrador tiene acceso a tres vistas clave:
 
-Solicitudes de adopción (AdminIndex):
+Solicitudes de adopción:
 Lista completa de solicitudes con compatibilidad, estado y fecha.
 
-Mejores coincidencias (TopMatches):
+Mejores coincidencias:
 Muestra los tres candidatos más compatibles por perro dentro de una ventana de tiempo.
 
-Mejores candidatos (BestMatches):
+Mejores candidatos:
 Resume el mejor candidato por cada perro, con control de ventana temporal:
 
 “Provisional” → ventana aún abierta (recibiendo solicitudes).
