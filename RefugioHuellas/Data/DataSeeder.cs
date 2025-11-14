@@ -38,7 +38,7 @@ namespace RefugioHuellas.Data
                 await userManager.AddToRoleAsync(admin, adminRole);
         }
 
-        // 🔹 Preguntas del test de compatibilidad
+        // Preguntas del test de compatibilidad
         public static async Task SeedCompatibilityAsync(ApplicationDbContext db)
         {
             // catálogo completo de rasgos propuestos

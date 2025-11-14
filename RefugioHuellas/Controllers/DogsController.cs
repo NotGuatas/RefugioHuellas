@@ -21,10 +21,11 @@ namespace RefugioHuellas.Controllers
         public async Task<IActionResult> Index()
         {
             var dogs = await _context.Dogs
-        .OrderByDescending(d => d.IntakeDate)
-        .ToListAsync();
-         ViewBag.WindowDays = 7; // 👈 añade esto para que la vista sepa el número de días
-          return View(dogs);
+                .OrderByDescending(d => d.IntakeDate)
+                .ToListAsync();
+
+            ViewBag.WindowDays = 7;
+            return View(dogs);
         }
 
         [AllowAnonymous]
@@ -48,7 +49,9 @@ namespace RefugioHuellas.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,PhotoFile,HealthStatus,Sterilized,IntakeDate")] Dog dog)
+        public async Task<IActionResult> Create(
+            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,PhotoFile,HealthStatus,Sterilized,IntakeDate")]
+            Dog dog)
         {
             // Requerimos imagen al crear
             if (dog.PhotoFile == null || dog.PhotoFile.Length == 0)
@@ -79,12 +82,18 @@ namespace RefugioHuellas.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,PhotoFile,HealthStatus,Sterilized,IntakeDate")] Dog dog)
+        public async Task<IActionResult> Edit(
+            int id,
+            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,PhotoFile,HealthStatus,Sterilized,IntakeDate")]
+            Dog dog)
         {
             if (id != dog.Id) return NotFound();
             if (!ModelState.IsValid) return View(dog);
 
-            var existing = await _context.Dogs.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
+            var existing = await _context.Dogs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.Id == id);
+
             if (existing == null) return NotFound();
 
             // Si suben nueva imagen, se reemplaza. Si no, se conserva la actual.
@@ -97,6 +106,12 @@ namespace RefugioHuellas.Controllers
             existing.Sterilized = dog.Sterilized;
             existing.IntakeDate = dog.IntakeDate;
             existing.PhotoUrl = dog.PhotoUrl;
+
+            // 🔹 Campos nuevos que no se estaban guardando
+            existing.Breed = dog.Breed;
+            existing.Size = dog.Size;
+            existing.IdealEnvironment = dog.IdealEnvironment;
+            existing.EnergyLevel = dog.EnergyLevel;
 
             try
             {
