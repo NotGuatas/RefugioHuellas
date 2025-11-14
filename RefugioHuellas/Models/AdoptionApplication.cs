@@ -1,4 +1,6 @@
-﻿namespace RefugioHuellas.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace RefugioHuellas.Models
 {
     public class AdoptionApplication
     {
@@ -11,6 +13,12 @@
 
         public Dog? Dog { get; set; } 
         public int CompatibilityScore { get; set; } = 0; // 0–100
+
+        [Required(ErrorMessage = "El teléfono de contacto es obligatorio.")]
+        [RegularExpression(@"^09\d{8}$",
+        ErrorMessage = "El teléfono debe iniciar con 09 y tener 10 dígitos.")]
+        [Display(Name = "Teléfono de contacto")]
+        public string Phone { get; set; } = string.Empty;
 
     }
 }
