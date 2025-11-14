@@ -1,38 +1,53 @@
 ﻿@model IEnumerable<RefugioHuellas.Models.Dog>
+
 @{
     ViewData["Title"] = "Perros";
     bool isAdmin = User.IsInRole("Admin");
 
-    // Si el controlador no envía ViewBag.WindowDays,
-    // usamos 7 como valor por defecto.
+    // Si el controlador no envía ViewBag.WindowDays, usamos 7 como valor por defecto.
     var windowDays = ViewBag.WindowDays is int d && d > 0 ? d : 7;
 }
 
-<h1>Perros en el Refugio</h1>
+<div class="page-title">
+    <div>
+        <h1>Perros en el refugio</h1>
+        <p>Explora los peluditos que están esperando un hogar.</p>
+    </div>
 
-@if (isAdmin)
-{
-    <p>
-        <a asp-action="Create" class="btn btn-success">Agregar nuevo perro</a>
-    </p>
-}
+    @if (isAdmin)
+    {
+        <a asp-action="Create" class="btn btn-success btn-add">
+            + Agregar nuevo perro
+        </a>
+    }
+</div>
 
 @if (!Model.Any())
 {
-    <p class="text-muted">No hay perros registrados aún.</p>
+    <div class="empty-state">
+        No hay perros registrados aún en el refugio. <br />
+        @if (isAdmin)
+        {
+            <span>Haz clic en <strong>“Agregar nuevo perro”</strong> para registrar el primero.</span>
+        }
+        else
+        {
+            <span>Vuelve más tarde, pronto habrá nuevos amigos disponibles.</span>
+        }
+    </div>
 }
 else
 {
-    <table class="table table-striped">
-        <thead class="table-light">
+    <table class="table table-hover table-paws">
+        <thead>
             <tr>
+                <th>Foto</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
-                <th>Foto</th>
                 <th>Estado de salud</th>
                 <th>Esterilizado</th>
                 <th>Fecha ingreso</th>
-                <th>Acciones</th>
+                <th class="text-end">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -43,23 +58,25 @@ else
                 var cerrada = DateTime.UtcNow >= closeAtUtc;
 
                 <tr>
-                    <td>@item.Name</td>
-                    <td>@item.Description</td>
                     <td>
                         @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
                         {
-                            <img src="@item.PhotoUrl" alt="@item.Name" width="100" />
+                            <img src="@item.PhotoUrl" alt="@item.Name" class="dog-thumb" />
                         }
                         else
                         {
-                            <span class="text-muted">Sin foto</span>
+                            <span class="text-muted small">Sin foto</span>
                         }
                     </td>
+                    <td class="fw-semibold">@item.Name</td>
+                    <td>@item.Description</td>
                     <td>@item.HealthStatus</td>
                     <td>@(item.Sterilized ? "Sí" : "No")</td>
                     <td>@item.IntakeDate.ToLocalTime().ToShortDateString()</td>
-                    <td class="text-nowrap">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Ver</a>
+                    <td class="text-end text-nowrap">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">
+                            Ver
+                        </a>
 
                         @if (!cerrada)
                         {
@@ -68,12 +85,16 @@ else
                                 <a asp-controller="AdoptionApplications"
                                    asp-action="Create"
                                    asp-route-dogId="@item.Id"
-                                   class="btn btn-sm btn-success ms-1">Adoptar</a>
+                                   class="btn btn-sm btn-success ms-1">
+                                    Adoptar
+                                </a>
                             }
                             else
                             {
                                 <a href="/Identity/Account/Login?returnUrl=@Uri.EscapeDataString($"/AdoptionApplications/Create?dogId={item.Id}")"
-                                   class="btn btn-sm btn-success ms-1">Adoptar</a>
+                                   class="btn btn-sm btn-success ms-1">
+                                    Adoptar
+                                </a>
                             }
                         }
                         else
@@ -83,8 +104,12 @@ else
 
                         @if (isAdmin)
                         {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning ms-1">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger ms-1">Eliminar</a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning ms-1">
+                                Editar
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger ms-1">
+                                Eliminar
+                            </a>
                         }
                     </td>
                 </tr>

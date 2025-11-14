@@ -4,30 +4,39 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - RefugioHuellas</title>
+
+    <!-- Bootstrap local (el que ya tienes en wwwroot/lib) -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Tu CSS personalizado -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <!-- Estilos generados por Razor (no tocar) -->
     <link rel="stylesheet" href="~/RefugioHuellas.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="bg-light">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-light border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Dogs" asp-action="Index">RefugioHuellas</a>
+                <a class="navbar-brand fw-bold" asp-controller="Dogs" asp-action="Index">
+                    RefugioHuellas
+                </a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
                         aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between" id="navbarMain">
-                    <ul class="navbar-nav me-auto">
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Dogs" asp-action="Index">Perros</a>
+                            <a class="nav-link" asp-controller="Dogs" asp-action="Index">Perros</a>
                         </li>
 
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="AdoptionApplications" asp-action="My">
+                                <a class="nav-link" asp-controller="AdoptionApplications" asp-action="My">
                                     Mis solicitudes
                                 </a>
                             </li>
@@ -36,18 +45,18 @@
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="AdoptionApplications" asp-action="AdminIndex">
+                                    <a class="nav-link" asp-controller="AdoptionApplications" asp-action="AdminIndex">
                                         Solicitudes (Admin)
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="AdoptionApplications" asp-action="TopMatches">
+                                    <a class="nav-link" asp-controller="AdoptionApplications" asp-action="TopMatches">
                                         Mejores coincidencias
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="AdoptionApplications" asp-action="BestMatches">
-                                         Mejores Candidatos
+                                    <a class="nav-link" asp-controller="AdoptionApplications" asp-action="BestMatches">
+                                        Mejores Candidatos
                                     </a>
                                 </li>
                             }
@@ -60,15 +69,16 @@
         </nav>
     </header>
 
-    <div class="container">
+    <div class="container py-4">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - RefugioHuellas
+    <footer class="border-top bg-white text-muted mt-4">
+        <div class="container py-3 small d-flex justify-content-between">
+            <span>&copy; @DateTime.Now.Year - RefugioHuellas</span>
+            <span>Hecho con 💚 para los peluditos</span>
         </div>
     </footer>
 
