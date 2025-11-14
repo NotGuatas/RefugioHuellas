@@ -1,10 +1,16 @@
 ﻿@model IEnumerable<RefugioHuellas.Models.ViewModels.TopMatchVm>
+
 @{
     ViewData["Title"] = "Mejores coincidencias (Top 3)";
     var window = (int)(ViewBag.WindowDays ?? 7);
 }
 
-<h2>@ViewData["Title"]</h2>
+<div class="page-title">
+    <div>
+        <h1>Mejores coincidencias (Top 3)</h1>
+        <p>Para cada perro se muestran hasta tres postulantes con mayor compatibilidad.</p>
+    </div>
+</div>
 
 <!-- Formulario oculto: conserva la funcionalidad pero no se muestra -->
 <form class="d-none" method="get">
@@ -23,7 +29,9 @@
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info">No hay perros dentro de la ventana.</div>
+    <div class="empty-state">
+        No hay perros dentro de la ventana actual (@window días).
+    </div>
 }
 else
 {
@@ -32,11 +40,16 @@ else
         {
             var start = dog.IntakeDate;
             var end = dog.IntakeDate.AddDays(window);
-            <div class="card">
+
+            <div class="card card-section">
                 <div class="card-header fw-bold">
                     @dog.DogName
-                    <span class="text-muted ms-2">Alta: @dog.IntakeDate.ToLocalTime().ToString("g")</span>
-                    <span class="float-end text-muted">Ventana: @start.ToLocalTime().ToString("g") – @end.ToLocalTime().ToString("g")</span>
+                    <span class="text-muted ms-2">
+                        Alta: @dog.IntakeDate.ToLocalTime().ToString("g")
+                    </span>
+                    <span class="float-end text-muted">
+                        Ventana: @start.ToLocalTime().ToString("g") – @end.ToLocalTime().ToString("g")
+                    </span>
                 </div>
                 <div class="card-body p-0">
                     <table class="table mb-0 align-middle">
@@ -46,7 +59,7 @@ else
                                 <th>Compatibilidad</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>
-                                <th></th>
+                                <th class="text-end">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,6 +70,7 @@ else
                                     var badge = c.CompatibilityScore >= 75 ? "bg-success text-white"
                                     : c.CompatibilityScore >= 50 ? "bg-warning text-dark"
                                     : "bg-danger text-white";
+
                                     <tr>
                                         <td>@c.UserEmail</td>
                                         <td><span class="badge @badge">@c.CompatibilityScore %</span></td>
@@ -69,14 +83,18 @@ else
                                                asp-route-id="@c.ApplicationId">
                                                 Ver
                                             </a>
-                                            @* (Recordatorio) Sin botón Aprobar aquí *@
+                                            @* Sin botón Aprobar aquí (recordatorio) *@
                                         </td>
                                     </tr>
                                 }
                             }
                             else
                             {
-                                <tr><td colspan="5" class="text-muted text-center">Sin postulantes en la ventana.</td></tr>
+                                <tr>
+                                    <td colspan="5" class="text-muted text-center">
+                                        Sin postulantes en la ventana.
+                                    </td>
+                                </tr>
                             }
                         </tbody>
                     </table>
