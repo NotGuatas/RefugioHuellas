@@ -1,31 +1,61 @@
 ﻿@model RefugioHuellas.Models.ViewModels.AdminAdoptionDetailVm
+
 @{
     ViewData["Title"] = "Solicitud de adopción";
 }
-<h2>@ViewData["Title"]</h2>
 
-<div class="mb-3">
-    <strong>Usuario:</strong> @(Model.UserEmail ?? "(desconocido)")<br />
-    <strong>Perro:</strong> @Model.DogName<br />
-    <strong>Compatibilidad:</strong> @Model.CompatibilityScore %<br />
-    <strong>Estado:</strong> @Model.Status<br />
-    <strong>Fecha:</strong> @Model.CreatedAt.ToLocalTime().ToString("g")
+<div class="page-title">
+    <div>
+        <h1>Solicitud de adopción</h1>
+        <p>Detalle completo de la postulación seleccionada.</p>
+    </div>
+
+    <a asp-action="AdminIndex" class="btn btn-outline-secondary">
+        Volver al listado
+    </a>
 </div>
 
-<h5>Respuestas del formulario</h5>
-<table class="table">
-    <thead>
-        <tr><th>Pregunta</th><th>Respuesta (1–5 / Sí-No)</th></tr>
-    </thead>
-    <tbody>
-        @foreach (var r in Model.Answers)
-        {
-            <tr>
-                <td>@r.Prompt</td>
-                <td>@r.Value</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="card card-section mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Usuario</dt>
+            <dd class="col-sm-9">@(Model.UserEmail ?? "(desconocido)")</dd>
 
-<a asp-action="AdminIndex" class="btn btn-secondary">Volver</a>
+            <dt class="col-sm-3">Perro</dt>
+            <dd class="col-sm-9">@Model.DogName</dd>
+
+            <dt class="col-sm-3">Compatibilidad</dt>
+            <dd class="col-sm-9">@Model.CompatibilityScore %</dd>
+
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">@Model.Status</dd>
+
+            <dt class="col-sm-3">Fecha de solicitud</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("g")</dd>
+        </dl>
+    </div>
+</div>
+
+<h5 class="mb-3">Respuestas del formulario</h5>
+
+<div class="card card-section">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Pregunta</th>
+                    <th>Respuesta (1–5 / Sí-No)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Answers)
+                {
+                    <tr>
+                        <td>@r.Prompt</td>
+                        <td>@r.Value</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

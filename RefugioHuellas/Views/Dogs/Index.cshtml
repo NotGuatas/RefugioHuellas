@@ -4,7 +4,6 @@
     ViewData["Title"] = "Perros";
     bool isAdmin = User.IsInRole("Admin");
 
-    // Si el controlador no envía ViewBag.WindowDays, usamos 7 como valor por defecto.
     var windowDays = ViewBag.WindowDays is int d && d > 0 ? d : 7;
 }
 
@@ -53,7 +52,6 @@ else
         <tbody>
             @foreach (var item in Model)
             {
-                // --- Ventana de adopción ---
                 var closeAtUtc = item.IntakeDate.AddDays(windowDays);
                 var cerrada = DateTime.UtcNow >= closeAtUtc;
 

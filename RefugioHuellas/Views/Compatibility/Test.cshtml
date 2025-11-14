@@ -4,45 +4,72 @@
     var yesNoKeys = new HashSet<string>(new[] { "housingType", "space", "noiseTolerance" });
 }
 
-<h2>@ViewData["Title"]</h2>
-<p>Perro seleccionado: <strong>@Model.DogName</strong></p>
-<p>Responde estas preguntas para evaluar tu compatibilidad con este perrito.</p>
+<div class="page-title">
+    <div>
+        <h1>Formulario de compatibilidad</h1>
+        <p>
+            Perro seleccionado: <strong>@Model.DogName</strong><br />
+            Responde estas preguntas para evaluar tu compatibilidad con este perrito.
+        </p>
+    </div>
+</div>
 
-<form asp-action="Test" method="post">
-    <input type="hidden" asp-for="DogId" />
-    <input type="hidden" asp-for="DogName" />
+<div class="card card-section">
+    <div class="card-body">
+        <form asp-action="Test" method="post">
+            <input type="hidden" asp-for="DogId" />
+            <input type="hidden" asp-for="DogName" />
 
-    @for (int i = 0; i < Model.Answers.Count; i++)
-    {
-        var key = Model.Answers[i].Key;
-        <div class="card p-3 mb-3">
-            <p><strong>@Model.Answers[i].Prompt</strong></p>
-
-            <input type="hidden" asp-for="Answers[@i].TraitId" />
-            <input type="hidden" asp-for="Answers[@i].Key" />
-            <input type="hidden" asp-for="Answers[@i].Prompt" />
-
-            @if (yesNoKeys.Contains(key))
+            @for (int i = 0; i < Model.Answers.Count; i++)
             {
-                <div class="btn-group" role="group">
-                    <input type="radio" class="btn-check" id="q@(i)_no" name="Answers[@i].Value" value="1" @(Model.Answers[i].Value == 1 ? "checked" : null) />
-                    <label class="btn btn-outline-secondary" for="q@(i)_no">No</label>
+                var key = Model.Answers[i].Key;
 
-                    <input type="radio" class="btn-check" id="q@(i)_si" name="Answers[@i].Value" value="5" @(Model.Answers[i].Value == 5 ? "checked" : null) />
-                    <label class="btn btn-outline-primary" for="q@(i)_si">Sí</label>
+                <div class="mb-3 p-3 border rounded bg-light">
+                    <p class="fw-semibold mb-2">@Model.Answers[i].Prompt</p>
+
+                    <input type="hidden" asp-for="Answers[@i].TraitId" />
+                    <input type="hidden" asp-for="Answers[@i].Key" />
+                    <input type="hidden" asp-for="Answers[@i].Prompt" />
+
+                    @if (yesNoKeys.Contains(key))
+                    {
+                        <div class="btn-group" role="group">
+                            <input type="radio"
+                                   class="btn-check"
+                                   id="q@(i)_no"
+                                   name="Answers[@i].Value"
+                                   value="1"
+                                   @(Model.Answers[i].Value == 1 ? "checked" : null) />
+                            <label class="btn btn-outline-secondary" for="q@(i)_no">No</label>
+
+                            <input type="radio"
+                                   class="btn-check"
+                                   id="q@(i)_si"
+                                   name="Answers[@i].Value"
+                                   value="5"
+                                   @(Model.Answers[i].Value == 5 ? "checked" : null) />
+                            <label class="btn btn-outline-primary" for="q@(i)_si">Sí</label>
+                        </div>
+                    }
+                    else
+                    {
+                        <select asp-for="Answers[@i].Value" class="form-select" style="max-width:240px">
+                            <option value="1">1 - Muy bajo</option>
+                            <option value="2">2</option>
+                            <option value="3">3 - Medio</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - Muy alto</option>
+                        </select>
+                    }
                 </div>
             }
-            else
-            {
-                <select asp-for="Answers[@i].Value" class="form-select" style="max-width:220px">
-                    <option value="1">1 - Muy bajo</option>
-                    <option value="2">2</option>
-                    <option value="3">3 - Medio</option>
-                    <option value="4">4</option>
-                    <option value="5">5 - Muy alto</option>
-                </select>
-            }
-        </div>
-    }
-    <button class="btn btn-primary">Enviar solicitud</button>
-</form>
+
+            <button class="btn btn-success">
+                Enviar solicitud
+            </button>
+            <a asp-controller="Dogs" asp-action="Details" asp-route-id="@Model.DogId" class="btn btn-outline-secondary ms-2">
+                Volver al perro
+            </a>
+        </form>
+    </div>
+</div>
