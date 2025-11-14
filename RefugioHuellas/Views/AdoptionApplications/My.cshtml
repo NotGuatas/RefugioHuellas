@@ -1,27 +1,61 @@
 ﻿@model IEnumerable<RefugioHuellas.Models.AdoptionApplication>
+
 @{
     ViewData["Title"] = "Mis solicitudes";
 }
-<h2>@ViewData["Title"]</h2>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Perro</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th>Compatibilidad</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var a in Model)
-        {
-            <tr>
-                <td>@a.Dog?.Name</td>
-                <td>@a.CreatedAt.ToLocalTime().ToString("g")</td>
-                <td>@a.Status</td>
-                <td>@a.CompatibilityScore %</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="page-title">
+    <div>
+        <h1>Mis solicitudes</h1>
+        <p>Revisa el estado de las solicitudes de adopción que has enviado.</p>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        Aún no has enviado ninguna solicitud de adopción. <br />
+        Visita la sección <strong>Perros</strong> para encontrar a tu futuro compañero.
+    </div>
+}
+else
+{
+    <div class="card card-section">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Perro</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Compatibilidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model)
+                    {
+                        var compatClass = a.CompatibilityScore switch
+                        {
+                            >= 75 => "bg-success text-white",
+                            >= 50 => "bg-warning text-dark",
+                            _ => "bg-danger text-white"
+                        };
+
+                        var statusClass = a.Status == "Aprobada" ? "badge bg-success" :
+                        a.Status == "Rechazada" ? "badge bg-danger" :
+                        "badge bg-secondary";
+
+                        <tr>
+                            <td>@a.Dog?.Name</td>
+                            <td>@a.CreatedAt.ToLocalTime().ToString("g")</td>
+                            <td><span class="@statusClass">@a.Status</span></td>
+                            <td>
+                                <span class="badge @compatClass">@a.CompatibilityScore %</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
