@@ -4,18 +4,22 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copiamos solo el csproj primero (acelera el cache de restore)
-COPY ["RefugioHuellas.csproj", "./"]
+# Copiamos el .csproj desde la carpeta del proyecto
+COPY ["RefugioHuellas/RefugioHuellas.csproj", "RefugioHuellas/"]
+
+# Nos movemos a la carpeta del proyecto
+WORKDIR /src/RefugioHuellas
 
 # Restaurar paquetes
 RUN dotnet restore "RefugioHuellas.csproj"
 
-# Copiar todo el código
+# Volvemos a /src y copiamos TODO el código del repo
+WORKDIR /src
 COPY . .
 
-# Publicar en modo Release a la carpeta /app/publish
+# De nuevo a la carpeta del proyecto para publicar
+WORKDIR /src/RefugioHuellas
 RUN dotnet publish "RefugioHuellas.csproj" -c Release -o /app/publish
-
 
 # ============================
 # 2) Etapa de runtime
