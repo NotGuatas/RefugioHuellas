@@ -85,6 +85,7 @@ Al finalizar la ventana, el admin aprueba al mejor candidato desde “Mejores Ca
 
 RefugioHuellas/
 │
+
 ├── Controllers/
 │   ├── DogsController.cs
 │   ├── AdoptionApplicationsController.cs
