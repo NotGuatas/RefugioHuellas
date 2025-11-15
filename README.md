@@ -91,21 +91,21 @@ SQLite (DB Browse for SQLite)
 
 # Como correr el proyecto 
 
-# Clonar el repositorio
+Clonar el repositorio:
 git clone https://github.com/NotGuatas/RefugioHuellas.git
 cd RefugioHuellas
 
-# Restaurar dependencias
+Restaurar dependencias:
 dotnet restore
 
-# Crear la base de datos
+Crear la base de datos:
 dotnet ef database update
 
-# Ejecutar la aplicación
+Ejecutar la aplicación:
 dotnet run
 
 
-# Credenciales iniciales (seed) 
+Credenciales iniciales:
 
 Email: admin@huellas.com  
 Password: Admin123$
@@ -114,26 +114,8 @@ Password: Admin123$
 # Link para ver el proyecto deployado
 https://refugiohuellas-2.onrender.com
 
-# Cuenta Admin para acceder sin registarlo
+Cuenta Admin para acceder:
 mail: admin@huellas.com  
 Password: Admin123$
 
-
-# Notas adicionales
-Las imágenes subidas se guardan en wwwroot/uploads/
-(esta carpeta está ignorada por Git para evitar subir archivos grandes).
-
-El sistema usa Entity Framework Core con migraciones automáticas.
-
-Al cerrarse la ventana de adopción, las solicitudes quedan bloqueadas para ese perro.
-
-Compatible con futuras integraciones en React (API lista para consumir).
-
-# Próximas mejoras (futuro)
-
-Conexión con frontend React para versión moderna.
-
-Agregar más preguntas al formulario de compatibilidad.
-
-Sistema de notificaciones por correo al aprobar adopciones.
 
