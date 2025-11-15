@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RefugioHuellas.Data;
 using RefugioHuellas.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace RefugioHuellas.Controllers
 {
@@ -21,6 +22,7 @@ namespace RefugioHuellas.Controllers
         public async Task<IActionResult> Index()
         {
             var dogs = await _context.Dogs
+                .Include(d => d.OriginType)     // 🔹 cargar origen
                 .OrderByDescending(d => d.IntakeDate)
                 .ToListAsync();
 
@@ -33,7 +35,10 @@ namespace RefugioHuellas.Controllers
         {
             if (id == null) return NotFound();
 
-            var dog = await _context.Dogs.FirstOrDefaultAsync(m => m.Id == id);
+            var dog = await _context.Dogs
+                .Include(d => d.OriginType)     // 🔹 cargar origen
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             if (dog == null) return NotFound();
 
             return View(dog);
@@ -43,6 +48,7 @@ namespace RefugioHuellas.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
+            ViewData["OriginTypeId"] = new SelectList(_context.OriginTypes, "Id", "Name");
             return View();
         }
 
@@ -50,14 +56,18 @@ namespace RefugioHuellas.Controllers
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(
-            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,PhotoFile,HealthStatus,Sterilized,IntakeDate")]
+            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,OriginTypeId,PhotoFile,HealthStatus,Sterilized,IntakeDate")]
             Dog dog)
         {
             // Requerimos imagen al crear
             if (dog.PhotoFile == null || dog.PhotoFile.Length == 0)
                 ModelState.AddModelError("PhotoFile", "Selecciona una imagen.");
 
-            if (!ModelState.IsValid) return View(dog);
+            if (!ModelState.IsValid)
+            {
+                ViewData["OriginTypeId"] = new SelectList(_context.OriginTypes, "Id", "Name", dog.OriginTypeId);
+                return View(dog);
+            }
 
             await HandleUploadAsync(dog); // establece dog.PhotoUrl
 
@@ -76,6 +86,7 @@ namespace RefugioHuellas.Controllers
             var dog = await _context.Dogs.FindAsync(id);
             if (dog == null) return NotFound();
 
+            ViewData["OriginTypeId"] = new SelectList(_context.OriginTypes, "Id", "Name", dog.OriginTypeId);
             return View(dog);
         }
 
@@ -84,11 +95,15 @@ namespace RefugioHuellas.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(
             int id,
-            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,PhotoFile,HealthStatus,Sterilized,IntakeDate")]
+            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,OriginTypeId,PhotoFile,HealthStatus,Sterilized,IntakeDate")]
             Dog dog)
         {
             if (id != dog.Id) return NotFound();
-            if (!ModelState.IsValid) return View(dog);
+            if (!ModelState.IsValid)
+            {
+                ViewData["OriginTypeId"] = new SelectList(_context.OriginTypes, "Id", "Name", dog.OriginTypeId);
+                return View(dog);
+            }
 
             var existing = await _context.Dogs
                 .AsNoTracking()
@@ -112,6 +127,7 @@ namespace RefugioHuellas.Controllers
             existing.Size = dog.Size;
             existing.IdealEnvironment = dog.IdealEnvironment;
             existing.EnergyLevel = dog.EnergyLevel;
+            existing.OriginTypeId = dog.OriginTypeId;
 
             try
             {

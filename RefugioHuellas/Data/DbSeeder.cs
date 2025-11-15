@@ -88,6 +88,19 @@ namespace RefugioHuellas.Data
             }
 
             await context.SaveChangesAsync();
+
+            // 5) Tipos de origen del perro
+            if (!await context.OriginTypes.AnyAsync())
+            {
+                context.OriginTypes.AddRange(
+                    new OriginType { Name = "Calle" },
+                    new OriginType { Name = "Rescate policial" },
+                    new OriginType { Name = "Rescate vecinal" },
+                    new OriginType { Name = "Abandono" },
+                    new OriginType { Name = "Entregado por familia" }
+                );
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

@@ -18,5 +18,8 @@ namespace RefugioHuellas.Data
 
         public DbSet<AdoptionApplicationAnswer> AdoptionApplicationAnswers => Set<AdoptionApplicationAnswer>();
 
+        public DbSet<OriginType> OriginTypes { get; set; } = null!;
+
+
     }
 }
