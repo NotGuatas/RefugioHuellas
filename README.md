@@ -92,16 +92,20 @@ SQLite (DB Browse for SQLite)
 # Como correr el proyecto 
 
 Clonar el repositorio:
+
 git clone https://github.com/NotGuatas/RefugioHuellas.git
 cd RefugioHuellas
 
 Restaurar dependencias:
+
 dotnet restore
 
 Crear la base de datos:
+
 dotnet ef database update
 
 Ejecutar la aplicación:
+
 dotnet run
 
 
@@ -115,7 +119,8 @@ Password: Admin123$
 https://refugiohuellas-2.onrender.com
 
 Cuenta Admin para acceder:
-mail: admin@huellas.com  
+
+Email: admin@huellas.com  
 Password: Admin123$
 
 
