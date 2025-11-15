@@ -6,6 +6,8 @@ using RefugioHuellas.Data;
 using RefugioHuellas.Models;
 using RefugioHuellas.Models.ViewModels;
 using RefugioHuellas.Services;
+using System.Text.RegularExpressions;
+
 
 namespace RefugioHuellas.Controllers
 {
@@ -51,7 +53,7 @@ namespace RefugioHuellas.Controllers
                 return RedirectToAction("Index", "Dogs");
             }
 
-            //  Bloqueo por ventana cerrada (usa la misma regla que en Admin: 7 días por defecto)
+            // Bloqueo por ventana cerrada (usa la misma regla que en Admin: 7 días por defecto)
             int window = ResolveWindowDays(null); // por defecto 7
             var closeAtUtc = dog.IntakeDate.AddDays(window);
             if (DateTime.UtcNow >= closeAtUtc)
@@ -60,7 +62,7 @@ namespace RefugioHuellas.Controllers
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
-            //  Si el usuario ya aplicó para este perro, no permitir repetir
+            // Si el usuario ya aplicó para este perro, no permitir repetir
             var existingApp = await _context.AdoptionApplications
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.UserId == userId && a.DogId == dogId);
@@ -73,15 +75,18 @@ namespace RefugioHuellas.Controllers
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
-            // Redirigir al formulario específico del perro
-            return RedirectToAction("Test", "Compatibility", new { dogId });
+            //  Ahora sí mostramos la vista de Create (teléfono + notas)
+            ViewBag.DogId = dogId;
+            return View();
         }
 
 
-        // (Este POST queda por compatibilidad; el flujo normal viene desde Compatibility/Test)
+
+        // (Este POST ahora valida teléfono en BACK-END
+        //  y luego envía al formulario de compatibilidad)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int dogId, string? notes)
+        public async Task<IActionResult> Create(int dogId, string phone, string? notes)
         {
             var userId = _userManager.GetUserId(User)!;
 
@@ -100,16 +105,32 @@ namespace RefugioHuellas.Controllers
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
-            //   BLOQUEO: ventana cerrada
+            // BLOQUEO: ventana cerrada
             if (!IsWindowOpen(dog.IntakeDate, WINDOW_DAYS_DEFAULT))
             {
                 TempData["Error"] = "La ventana de postulaciones para este perro ya está cerrada.";
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
+            //  VALIDACIÓN EN BACK-END DEL TELÉFONO (dato sensible)
+            // Regla: debe comenzar con 09 y tener exactamente 10 dígitos.
+            if (string.IsNullOrWhiteSpace(phone) || !Regex.IsMatch(phone, @"^09\d{8}$"))
+            {
+                ModelState.AddModelError("phone", "El teléfono debe comenzar con 09 y tener 10 dígitos (ej: 0991234567).");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Volvemos al formulario mostrando el error
+                ViewBag.DogId = dogId;
+                return View();
+            }
+
+            // mandar al formulario de compatibilidad.
             TempData["Error"] = "Por favor completa el formulario de compatibilidad para este perro.";
             return RedirectToAction("Test", "Compatibility", new { dogId });
         }
+
 
         // ===== Mis solicitudes =====
         [HttpGet]
