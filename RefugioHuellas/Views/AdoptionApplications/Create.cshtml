@@ -18,12 +18,30 @@
 {
     <div class="alert alert-success">@TempData["AdoptOk"]</div>
 }
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-info">@TempData["Info"]</div>
+}
 
 <div class="card card-section">
     <div class="card-body">
         <form asp-action="Create" method="post">
             <input type="hidden" name="dogId" value="@dogId" />
 
+            <!-- Resumen de validación del servidor -->
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <!-- Dato sensible: teléfono de contacto -->
+            <div class="mb-3">
+                <label class="form-label" for="phone">Teléfono de contacto</label>
+                <input class="form-control" id="phone" name="phone" placeholder="Ej: 0991234567" />
+                @Html.ValidationMessage("phone", null, new { @class = "text-danger" })
+                <div class="form-text">
+                    Este dato se valida en el servidor antes de continuar con tu solicitud.
+                </div>
+            </div>
+
+            <!-- Notas opcionales -->
             <div class="mb-3">
                 <label class="form-label">Notas para el refugio (opcional)</label>
                 <textarea class="form-control" name="notes" rows="3"
@@ -36,3 +54,7 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
