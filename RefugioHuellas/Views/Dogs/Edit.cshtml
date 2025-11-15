@@ -78,6 +78,17 @@
                         <span asp-validation-for="IdealEnvironment" class="text-danger"></span>
                     </div>
 
+                    <!-- 🔹 NUEVO: Origen del perro -->
+                    <div class="mb-3">
+                        <label asp-for="OriginTypeId" class="form-label">Origen del perro</label>
+                        <select asp-for="OriginTypeId"
+                                class="form-select"
+                                asp-items="ViewBag.OriginTypeId">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span asp-validation-for="OriginTypeId" class="text-danger"></span>
+                    </div>
+
                     <!-- Foto actual -->
                     <div class="mb-3">
                         <label class="form-label">Foto actual</label><br />

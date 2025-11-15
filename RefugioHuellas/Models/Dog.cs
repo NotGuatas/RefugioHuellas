@@ -18,6 +18,9 @@ namespace RefugioHuellas.Models
         public int EnergyLevel { get; set; } = 3; //  Nivel de energia del perro del 1 a 5
         public string IdealEnvironment { get; set; } = ""; // Selección entre "Departamento", "Casa con patio", para perrito
 
+        public int OriginTypeId { get; set; }        // FK obligatoria
+        public OriginType? OriginType { get; set; }  // Navegación
+
 
         [NotMapped]
         public IFormFile? PhotoFile { get; set; } // Foto que se sube tiene que ser menos -5mb

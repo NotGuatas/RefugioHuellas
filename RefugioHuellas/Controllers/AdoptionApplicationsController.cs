@@ -75,18 +75,16 @@ namespace RefugioHuellas.Controllers
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
-            //  Ahora sí mostramos la vista de Create (teléfono + notas)
+            // Mostramos la vista de Create (nombre, apellido y teléfono)
             ViewBag.DogId = dogId;
             return View();
         }
 
-
-
-        // (Este POST ahora valida teléfono en BACK-END
+        // (Este POST ahora valida nombre, apellido y teléfono en BACK-END
         //  y luego envía al formulario de compatibilidad)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int dogId, string phone, string? notes)
+        public async Task<IActionResult> Create(int dogId, string firstName, string lastName, string phone)
         {
             var userId = _userManager.GetUserId(User)!;
 
@@ -112,7 +110,21 @@ namespace RefugioHuellas.Controllers
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
-            //  VALIDACIÓN EN BACK-END DEL TELÉFONO (dato sensible)
+            // ✅ Validación en BACK-END
+
+            // Nombre obligatorio
+            if (string.IsNullOrWhiteSpace(firstName))
+            {
+                ModelState.AddModelError("firstName", "El nombre es obligatorio.");
+            }
+
+            // Apellido obligatorio
+            if (string.IsNullOrWhiteSpace(lastName))
+            {
+                ModelState.AddModelError("lastName", "El apellido es obligatorio.");
+            }
+
+            // Teléfono (dato sensible)
             // Regla: debe comenzar con 09 y tener exactamente 10 dígitos.
             if (string.IsNullOrWhiteSpace(phone) || !Regex.IsMatch(phone, @"^09\d{8}$"))
             {
@@ -121,13 +133,13 @@ namespace RefugioHuellas.Controllers
 
             if (!ModelState.IsValid)
             {
-                // Volvemos al formulario mostrando el error
+                // Volvemos al formulario mostrando los errores
                 ViewBag.DogId = dogId;
                 return View();
             }
 
-            // mandar al formulario de compatibilidad.
-            TempData["Error"] = "Por favor completa el formulario de compatibilidad para este perro.";
+            // Seguimos con el flujo normal: mandar al formulario de compatibilidad.
+            TempData["Error"] = $"Gracias {firstName}, ahora completa el formulario de compatibilidad para este perrito.";
             return RedirectToAction("Test", "Compatibility", new { dogId });
         }
 
