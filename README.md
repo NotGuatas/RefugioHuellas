@@ -105,9 +105,17 @@ dotnet ef database update
 dotnet run
 
 
-# Credenciales iniciales (seed)
+# Credenciales iniciales (seed) 
 
 Email: admin@huellas.com  
+Password: Admin123$
+
+
+# Link para ver el proyecto deployado
+https://refugiohuellas-2.onrender.com
+
+# Cuenta Admin para acceder sin registarlo
+mail: admin@huellas.com  
 Password: Admin123$
 
 
