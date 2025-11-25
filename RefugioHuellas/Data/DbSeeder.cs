@@ -15,10 +15,16 @@ namespace RefugioHuellas.Data
             var userManager = sp.GetRequiredService<UserManager<IdentityUser>>();
             var roleManager = sp.GetRequiredService<RoleManager<IdentityRole>>();
 
-            // 1) Migraciones
-            await context.Database.MigrateAsync();
+            // =======================================
+            // 1) Quitar migraciones en runtime (Azure)
+            // =======================================
+            // NO correr context.Database.MigrateAsync() en producción.
+            // EF ya migró la DB manualmente con Update-Database.
+            // await context.Database.MigrateAsync();  <-- ELIMINADO
 
+            
             // 2) Roles
+            
             string[] roles = { "Admin", "User" };
             foreach (var role in roles)
             {
@@ -28,7 +34,9 @@ namespace RefugioHuellas.Data
                 }
             }
 
+            
             // 3) Cuenta admin
+            
             const string adminEmail = "admin@huellas.com";
             const string adminPass = "Admin123$";
 
@@ -49,7 +57,8 @@ namespace RefugioHuellas.Data
                 }
             }
 
-            // 4) Rasgos de compatibilidad (12 preguntas) — SEED INTELIGENTE
+            // 4) Rasgos de compatibilidad
+           
             var traits = new List<PersonalityTrait>
             {
                 new() { Key = "housingType",     Name = "Tipo de vivienda",            Prompt = "¿Vives en departamento?",                        Weight = 3, Active = true },
@@ -68,18 +77,15 @@ namespace RefugioHuellas.Data
 
             foreach (var trait in traits)
             {
-                // Si existe, actualizar
                 var existing = await context.PersonalityTraits
                     .FirstOrDefaultAsync(t => t.Key == trait.Key);
 
                 if (existing == null)
                 {
-                    // Nuevo
                     context.PersonalityTraits.Add(trait);
                 }
                 else
                 {
-                    // Actualizar valores si hubo cambios
                     existing.Name = trait.Name;
                     existing.Prompt = trait.Prompt;
                     existing.Weight = trait.Weight;
@@ -89,6 +95,7 @@ namespace RefugioHuellas.Data
 
             await context.SaveChangesAsync();
 
+            
             // 5) Tipos de origen del perro
             if (!await context.OriginTypes.AnyAsync())
             {
@@ -99,6 +106,7 @@ namespace RefugioHuellas.Data
                     new OriginType { Name = "Abandono" },
                     new OriginType { Name = "Entregado por familia" }
                 );
+
                 await context.SaveChangesAsync();
             }
         }

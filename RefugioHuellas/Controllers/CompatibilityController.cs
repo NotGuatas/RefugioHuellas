@@ -16,6 +16,7 @@ namespace RefugioHuellas.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly CompatibilityService _compat;
 
+
         private const int WINDOW_DAYS_DEFAULT = 7; // Ventana de adopción por defecto (7 días)
 
         public CompatibilityController(ApplicationDbContext db, UserManager<IdentityUser> userManager, CompatibilityService compat)
@@ -33,14 +34,14 @@ namespace RefugioHuellas.Controllers
             var dog = await _db.Dogs.FindAsync(dogId);
             if (dog == null) return NotFound();
 
-            // 🚫 BLOQUEO DE VENTANA: si el perro ya cumplió 7 días desde su ingreso, no se puede postular
+            //  BLOQUEO DE VENTANA: si el perro ya cumplió 7 días desde su ingreso, no se puede postular
             if (DateTime.UtcNow >= dog.IntakeDate.AddDays(WINDOW_DAYS_DEFAULT))
             {
                 TempData["Error"] = $"La ventana de postulaciones para {dog.Name} ya está cerrada.";
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
-            // ✅ Si ya existe solicitud: NO permitir nuevo formulario
+            //  Si ya existe solicitud: NO permitir nuevo formulario
             var existing = await _db.AdoptionApplications
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.UserId == userId && a.DogId == dogId);
@@ -84,14 +85,14 @@ namespace RefugioHuellas.Controllers
             var dog = await _db.Dogs.FindAsync(vm.DogId);
             if (dog == null) return NotFound();
 
-            // 🚫 BLOQUEO DE VENTANA: evita guardar solicitudes fuera del plazo
+            //  BLOQUEO DE VENTANA: evita guardar solicitudes fuera del plazo
             if (DateTime.UtcNow >= dog.IntakeDate.AddDays(WINDOW_DAYS_DEFAULT))
             {
                 TempData["Error"] = $"La ventana de postulaciones para {dog.Name} ya está cerrada.";
                 return RedirectToAction("Details", "Dogs", new { id = vm.DogId });
             }
 
-            // ✅ Doble verificación anti-duplicado en POST
+            //  Doble verificación anti-duplicado en POST
             var existing = await _db.AdoptionApplications
                 .FirstOrDefaultAsync(a => a.UserId == userId && a.DogId == vm.DogId);
 
