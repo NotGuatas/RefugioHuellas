@@ -69,7 +69,7 @@ namespace RefugioHuellas.Services
                 sum += val * t.Weight;
             }
 
-            // Bonus leve por esterilizado
+            // esterilizado
             var score = Math.Clamp(sum / Math.Max(1, totalWeight), 0, 100);
             if (dog.Sterilized) score = Math.Min(100, score + 3);
 

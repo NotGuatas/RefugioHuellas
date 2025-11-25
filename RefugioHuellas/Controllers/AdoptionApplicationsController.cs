@@ -18,7 +18,7 @@ namespace RefugioHuellas.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly CompatibilityService _compat;
 
-        // Cambia este valor si quieres otra ventana por defecto
+        // ventana por defecto
         private const int WINDOW_DAYS_DEFAULT = 7;
 
         public AdoptionApplicationsController(
@@ -110,7 +110,7 @@ namespace RefugioHuellas.Controllers
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
-            // ✅ Validación en BACK-END
+            //  Validación en BACK-END
 
             // Nombre obligatorio
             if (string.IsNullOrWhiteSpace(firstName))

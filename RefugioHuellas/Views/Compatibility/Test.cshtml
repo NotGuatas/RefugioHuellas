@@ -1,7 +1,6 @@
 ﻿@model RefugioHuellas.Models.ViewModels.CompatibilityFormVm
 @{
     ViewData["Title"] = "Formulario de compatibilidad";
-    var yesNoKeys = new HashSet<string>(new[] { "housingType", "space", "noiseTolerance" });
 }
 
 <div class="page-title">
@@ -22,8 +21,6 @@
 
             @for (int i = 0; i < Model.Answers.Count; i++)
             {
-                var key = Model.Answers[i].Key;
-
                 <div class="mb-3 p-3 border rounded bg-light">
                     <p class="fw-semibold mb-2">@Model.Answers[i].Prompt</p>
 
@@ -31,36 +28,13 @@
                     <input type="hidden" asp-for="Answers[@i].Key" />
                     <input type="hidden" asp-for="Answers[@i].Prompt" />
 
-                    @if (yesNoKeys.Contains(key))
-                    {
-                        <div class="btn-group" role="group">
-                            <input type="radio"
-                                   class="btn-check"
-                                   id="q@(i)_no"
-                                   name="Answers[@i].Value"
-                                   value="1"
-                                   @(Model.Answers[i].Value == 1 ? "checked" : null) />
-                            <label class="btn btn-outline-secondary" for="q@(i)_no">No</label>
-
-                            <input type="radio"
-                                   class="btn-check"
-                                   id="q@(i)_si"
-                                   name="Answers[@i].Value"
-                                   value="5"
-                                   @(Model.Answers[i].Value == 5 ? "checked" : null) />
-                            <label class="btn btn-outline-primary" for="q@(i)_si">Sí</label>
-                        </div>
-                    }
-                    else
-                    {
-                        <select asp-for="Answers[@i].Value" class="form-select" style="max-width:240px">
-                            <option value="1">1 - Muy bajo</option>
-                            <option value="2">2</option>
-                            <option value="3">3 - Medio</option>
-                            <option value="4">4</option>
-                            <option value="5">5 - Muy alto</option>
-                        </select>
-                    }
+                    <select asp-for="Answers[@i].Value" class="form-select" style="max-width:260px">
+                        <option value="1">No</option>
+                        <option value="2">Rara vez</option>
+                        <option value="3">A veces</option>
+                        <option value="4">Casi siempre</option>
+                        <option value="5">Sí</option>
+                    </select>
                 </div>
             }
 

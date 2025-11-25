@@ -7,13 +7,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ----------------- Servicios -----------------
 
-// Cadena de conexión (local y Render usan la misma clave "DefaultConnection")
+// Cadena de conexión: debe existir "DefaultConnection" en appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                       ?? "Data Source=refugio.db";
+                       ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// DbContext (solo UNA vez)
+// DbContext: AHORA con SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseSqlServer(connectionString));
 
 // MVC
 builder.Services.AddControllersWithViews();
