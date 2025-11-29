@@ -26,7 +26,8 @@ namespace RefugioHuellas.Controllers
             _compat = compat;
         }
 
-        // GET: /Compatibility/Test?dogId=5
+
+        // GET: /Compatibility/Test
         [HttpGet]
         public async Task<IActionResult> Test(int dogId)
         {
@@ -85,15 +86,16 @@ namespace RefugioHuellas.Controllers
             var dog = await _db.Dogs.FindAsync(vm.DogId);
             if (dog == null) return NotFound();
 
-            //  BLOQUEO DE VENTANA: evita guardar solicitudes fuera del plazo
+            // BLOQUEO DE VENTANA: evita guardar solicitudes fuera del plazo
             if (DateTime.UtcNow >= dog.IntakeDate.AddDays(WINDOW_DAYS_DEFAULT))
             {
                 TempData["Error"] = $"La ventana de postulaciones para {dog.Name} ya está cerrada.";
                 return RedirectToAction("Details", "Dogs", new { id = vm.DogId });
             }
 
-            //  Doble verificación anti-duplicado en POST
+            // Doble verificación anti-duplicado en POST
             var existing = await _db.AdoptionApplications
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.UserId == userId && a.DogId == vm.DogId);
 
             if (existing != null)
@@ -107,32 +109,78 @@ namespace RefugioHuellas.Controllers
             // Calcular score en base a las respuestas del formulario
             int score = await _compat.CalculateFromAnswersAsync(dog, vm.Answers);
 
-            // Crear solicitud
+            // Actualizar / crear perfil del usuario con estas respuestas
+            await UpsertUserProfileAsync(userId, vm.Answers);
+
+            // Recuperar teléfono desde TempData (primer paso de Create)
+            var phone = TempData["Phone"] as string ?? string.Empty;
+
+            // Crear solicitud de adopción (todavía sin respuestas asociadas)
             var app = new AdoptionApplication
             {
                 DogId = vm.DogId,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 Status = "Pendiente",
-                CompatibilityScore = score
+                CompatibilityScore = score,
+                Phone = phone
             };
             _db.AdoptionApplications.Add(app);
+
+            // Guardamos aquí para que app.Id ya exista en la BD
             await _db.SaveChangesAsync();
 
-            // Guardar snapshot de respuestas
+            // Ahora sí, guardamos snapshot de las respuestas vinculadas a esta solicitud
             foreach (var a in vm.Answers)
             {
                 _db.AdoptionApplicationAnswers.Add(new AdoptionApplicationAnswer
                 {
-                    AdoptionApplicationId = app.Id,
+                    AdoptionApplicationId = app.Id,  // ahora app.Id ya es válido
                     TraitId = a.TraitId,
                     Value = Math.Clamp(a.Value, 1, 5)
                 });
             }
+
+            // Guardamos las respuestas
             await _db.SaveChangesAsync();
 
             TempData["AdoptOk"] = $"Tu solicitud fue enviada. Compatibilidad: {score}%";
             return RedirectToAction("Details", "Dogs", new { id = vm.DogId });
         }
+
+
+
+        // Guarda o actualiza el perfil de compatibilidad del usuario
+        private async Task UpsertUserProfileAsync(string userId, IEnumerable<CompatibilityAnswerVm> answers)
+        {
+            var traitIds = answers.Select(a => a.TraitId).ToList();
+
+            var existing = await _db.UserTraitResponses
+                .Where(r => r.UserId == userId && traitIds.Contains(r.TraitId))
+                .ToListAsync();
+
+            foreach (var a in answers)
+            {
+                var value = Math.Clamp(a.Value, 1, 5);
+
+                var current = existing.FirstOrDefault(r => r.TraitId == a.TraitId);
+                if (current == null)
+                {
+                    _db.UserTraitResponses.Add(new UserTraitResponse
+                    {
+                        UserId = userId,
+                        TraitId = a.TraitId,
+                        Value = value,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    current.Value = value;
+                    current.CreatedAt = DateTime.UtcNow;
+                }
+            }
+        }
+
     }
 }

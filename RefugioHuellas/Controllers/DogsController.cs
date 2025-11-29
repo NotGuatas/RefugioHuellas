@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using RefugioHuellas.Data;
 using RefugioHuellas.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Identity;
+using RefugioHuellas.Services;
 
 namespace RefugioHuellas.Controllers
 {
@@ -11,10 +13,17 @@ namespace RefugioHuellas.Controllers
     public class DogsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly CompatibilityService _compat;
 
-        public DogsController(ApplicationDbContext context)
+        public DogsController(
+            ApplicationDbContext context,
+            UserManager<IdentityUser> userManager,
+            CompatibilityService compat)
         {
             _context = context;
+            _userManager = userManager;
+            _compat = compat;
         }
 
         // ----------- PÚBLICO -----------
@@ -22,11 +31,10 @@ namespace RefugioHuellas.Controllers
         public async Task<IActionResult> Index()
         {
             var dogs = await _context.Dogs
-                .Include(d => d.OriginType)     // 🔹 cargar origen
+                .Include(d => d.OriginType)
                 .OrderByDescending(d => d.IntakeDate)
                 .ToListAsync();
 
-            ViewBag.WindowDays = 7;
             return View(dogs);
         }
 
@@ -40,6 +48,25 @@ namespace RefugioHuellas.Controllers
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (dog == null) return NotFound();
+
+            // Compatibilidad personalizada para el usuario logueado
+            int? compatScore = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = _userManager.GetUserId(User);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var hasProfile = await _context.UserTraitResponses
+                        .AnyAsync(r => r.UserId == userId);
+
+                    if (hasProfile)
+                    {
+                        compatScore = await _compat.CalculateFromUserProfileAsync(dog, userId);
+                    }
+                }
+            }
+
+            ViewBag.CompatScore = compatScore;
 
             return View(dog);
         }
@@ -61,7 +88,7 @@ namespace RefugioHuellas.Controllers
         {
             // Requerimos imagen al crear
             if (dog.PhotoFile == null || dog.PhotoFile.Length == 0)
-                ModelState.AddModelError("PhotoFile", "Selecciona una imagen.");
+                ModelState.AddModelError("PhotoFile", "Debes subir una foto del perro.");
 
             if (!ModelState.IsValid)
             {
@@ -93,51 +120,31 @@ namespace RefugioHuellas.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(
-            int id,
-            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,OriginTypeId,PhotoFile,HealthStatus,Sterilized,IntakeDate")]
+        public async Task<IActionResult> Edit(int id,
+            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,OriginTypeId,PhotoFile,HealthStatus,Sterilized,IntakeDate,PhotoUrl")]
             Dog dog)
         {
             if (id != dog.Id) return NotFound();
+
             if (!ModelState.IsValid)
             {
                 ViewData["OriginTypeId"] = new SelectList(_context.OriginTypes, "Id", "Name", dog.OriginTypeId);
                 return View(dog);
             }
 
-            var existing = await _context.Dogs
-                .AsNoTracking()
-                .FirstOrDefaultAsync(d => d.Id == id);
-
-            if (existing == null) return NotFound();
-
-            // Si suben nueva imagen, se reemplaza. Si no, se conserva la actual.
-            dog.PhotoUrl = existing.PhotoUrl;
-            await HandleUploadAsync(dog);
-
-            existing.Name = dog.Name;
-            existing.Description = dog.Description;
-            existing.HealthStatus = dog.HealthStatus;
-            existing.Sterilized = dog.Sterilized;
-            existing.IntakeDate = dog.IntakeDate;
-            existing.PhotoUrl = dog.PhotoUrl;
-
-            // 🔹 Campos nuevos que no se estaban guardando
-            existing.Breed = dog.Breed;
-            existing.Size = dog.Size;
-            existing.IdealEnvironment = dog.IdealEnvironment;
-            existing.EnergyLevel = dog.EnergyLevel;
-            existing.OriginTypeId = dog.OriginTypeId;
-
             try
             {
-                _context.Update(existing);
+                // Si viene nueva foto, la reemplazamos
+                await HandleUploadAsync(dog);
+
+                _context.Update(dog);
                 await _context.SaveChangesAsync();
+
                 TempData["Ok"] = "Perro actualizado correctamente.";
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.Dogs.Any(e => e.Id == dog.Id)) return NotFound();
+                if (!DogExists(dog.Id)) return NotFound();
                 throw;
             }
 
@@ -149,7 +156,10 @@ namespace RefugioHuellas.Controllers
         {
             if (id == null) return NotFound();
 
-            var dog = await _context.Dogs.FirstOrDefaultAsync(m => m.Id == id);
+            var dog = await _context.Dogs
+                .Include(d => d.OriginType)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             if (dog == null) return NotFound();
 
             return View(dog);
@@ -161,31 +171,28 @@ namespace RefugioHuellas.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var dog = await _context.Dogs.FindAsync(id);
-            if (dog != null) _context.Dogs.Remove(dog);
+            if (dog == null) return NotFound();
 
+            _context.Dogs.Remove(dog);
             await _context.SaveChangesAsync();
-            TempData["Ok"] = "Perro eliminado.";
+
+            TempData["Ok"] = "Perro eliminado correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
-        // ----------- Helper: subir imagen -----------
+        private bool DogExists(int id)
+            => _context.Dogs.Any(e => e.Id == id);
+
+        // Manejo de subida de imagen
         private async Task HandleUploadAsync(Dog dog)
         {
-            if (dog.PhotoFile is { Length: > 0 })
+            if (dog.PhotoFile != null && dog.PhotoFile.Length > 0)
             {
+                var ext = Path.GetExtension(dog.PhotoFile.FileName);
                 var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                var ext = Path.GetExtension(dog.PhotoFile.FileName).ToLowerInvariant();
-
-                if (!allowed.Contains(ext))
+                if (!allowed.Contains(ext.ToLower()))
                 {
-                    ModelState.AddModelError("PhotoFile", "Formato de imagen no permitido.");
-                    return;
-                }
-
-                if (dog.PhotoFile.Length > 5 * 1024 * 1024) // 5MB
-                {
-                    ModelState.AddModelError("PhotoFile", "La imagen no debe superar 5 MB.");
-                    return;
+                    throw new InvalidOperationException("Formato de imagen no permitido.");
                 }
 
                 var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");

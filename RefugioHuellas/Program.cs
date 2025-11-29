@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// DbContext: AHORA con SQL Server
+// DbContext: con SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
@@ -38,14 +38,10 @@ builder.Services.AddScoped<CompatibilityService>();
 
 var app = builder.Build();
 
-// ===========================================
 //  Migraciones + SEED (roles, admin, traits, perros demo)
-// ===========================================
 await DbSeeder.SeedAsync(app.Services);
 
-// ===========================================
 //  Pipeline de ejecución
-// ===========================================
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
