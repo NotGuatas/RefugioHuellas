@@ -282,25 +282,27 @@ namespace RefugioHuellas.Controllers
         {
             var userId = _userManager.GetUserId(User)!;
 
-            // Verificar que el usuario tenga perfil de compatibilidad
+            // Verificar si el usuario tiene perfil de compatibilidad
             var hasProfile = await _context.UserTraitResponses
                 .AnyAsync(r => r.UserId == userId);
 
+            var window = ResolveWindowDays(null);
+            ViewBag.WindowDays = window;
+            ViewBag.NeedsProfile = !hasProfile;
+
+            // Si NO tiene perfil, devolvemos la vista con lista vacía
             if (!hasProfile)
             {
-                TempData["Error"] = "Primero necesitas completar tu formulario de compatibilidad al adoptar un perrito. A partir de ahí podremos recomendarte mejores coincidencias.";
-                return RedirectToAction("Index", "Dogs");
+                return View(new List<MyBestMatchVm>());
             }
 
-            // Obtener todos los perritos
+            // Si SÍ tiene perfil, calculamos los mejores matches
             var dogs = await _context.Dogs
                 .OrderByDescending(d => d.IntakeDate)
                 .ToListAsync();
 
             var scores = await _compat.CalculateBestMatchesForUserAsync(userId);
 
-            // Solo perros con ventana abierta
-            var window = ResolveWindowDays(null);
             var items = dogs
                 .Where(d => IsWindowOpen(d.IntakeDate, window))
                 .Select(d => new MyBestMatchVm
@@ -315,18 +317,12 @@ namespace RefugioHuellas.Controllers
                 })
                 .OrderByDescending(x => x.CompatibilityScore)
                 .ThenBy(x => x.IntakeDate)
-                .Take(3) // Top 3 perritos para el usuario
+                .Take(3)
                 .ToList();
 
-            if (!items.Any())
-            {
-                TempData["Info"] = "Por ahora no hay perritos disponibles dentro de la ventana de adopción. Vuelve a revisar pronto 🐶";
-                return RedirectToAction("Index", "Dogs");
-            }
-
-            ViewBag.WindowDays = window;
             return View(items);
         }
+
 
 
         //  Mejor candidato (ganador por perro)
