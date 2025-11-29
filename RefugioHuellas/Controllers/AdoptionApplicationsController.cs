@@ -31,14 +31,13 @@ namespace RefugioHuellas.Controllers
             _compat = compat;
         }
 
-        // ===== Helpers de ventana =====
         private int ResolveWindowDays(int? days)
             => (days.HasValue && days.Value > 0 && days.Value <= 60) ? days.Value : WINDOW_DAYS_DEFAULT;
 
         private static bool IsWindowOpen(DateTime intakeUtc, int windowDays)
             => DateTime.UtcNow < intakeUtc.AddDays(windowDays);
 
-        // ===== Crear solicitud (bloquea si la ventana está cerrada) =====
+        // Crear solicitud (bloquea si la ventana está cerrada) 
         // Evitar duplicados y bloquear si la ventana ya cerró
         [HttpGet]
         public async Task<IActionResult> Create(int dogId)
@@ -80,7 +79,7 @@ namespace RefugioHuellas.Controllers
             return View();
         }
 
-        // (Este POST ahora valida nombre, apellido y teléfono en BACK-END
+        // (POST valida nombre, apellido y teléfono 
         //  y luego envía al formulario de compatibilidad)
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -99,18 +98,11 @@ namespace RefugioHuellas.Controllers
                 .FirstOrDefaultAsync(a => a.UserId == userId && a.DogId == dogId);
             if (existingApp != null)
             {
-                TempData["Info"] = "Ya has enviado una solicitud para este perro.";
+                TempData["Info"] = $"Ya enviaste una solicitud para {dog.Name}. " +
+                                   $"Compatibilidad: {existingApp.CompatibilityScore}%. " +
+                                   $"Estado: {existingApp.Status}.";
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
-
-            // BLOQUEO: ventana cerrada
-            if (!IsWindowOpen(dog.IntakeDate, WINDOW_DAYS_DEFAULT))
-            {
-                TempData["Error"] = "La ventana de postulaciones para este perro ya está cerrada.";
-                return RedirectToAction("Details", "Dogs", new { id = dogId });
-            }
-
-            //  Validación en BACK-END
 
             // Nombre obligatorio
             if (string.IsNullOrWhiteSpace(firstName))
@@ -138,10 +130,40 @@ namespace RefugioHuellas.Controllers
                 return View();
             }
 
-            // Seguimos con el flujo normal: mandar al formulario de compatibilidad.
-            TempData["Error"] = $"Gracias {firstName}, ahora completa el formulario de compatibilidad para este perrito.";
+            // ¿El usuario ya tiene perfil de compatibilidad guardado?
+            var hasProfile = await _context.UserTraitResponses
+                .AnyAsync(r => r.UserId == userId);
+
+            if (hasProfile)
+            {
+                // Se Calcula el porcentaje usando el perfil guardado.
+                var score = await _compat.CalculateFromUserProfileAsync(dog, userId);
+
+                var app = new AdoptionApplication
+                {
+                    DogId = dogId,
+                    UserId = userId,
+                    Phone = phone,
+                    CreatedAt = DateTime.UtcNow,
+                    Status = "Pendiente",
+                    CompatibilityScore = score
+                };
+
+                _context.AdoptionApplications.Add(app);
+                await _context.SaveChangesAsync();
+
+                TempData["AdoptOk"] = $"Tu solicitud fue enviada. Compatibilidad: {score}%";
+                return RedirectToAction("Details", "Dogs", new { id = dogId });
+            }
+
+            //  Primera vez: guarda datos básicos en TempData y manda al formulario de compatibilidad
+            TempData["Phone"] = phone;
+            TempData["FirstName"] = firstName;
+            TempData["LastName"] = lastName;
+
             return RedirectToAction("Test", "Compatibility", new { dogId });
         }
+
 
 
         // ===== Mis solicitudes =====
@@ -256,7 +278,58 @@ namespace RefugioHuellas.Controllers
             return View(result);
         }
 
-        // ===== Mejor candidato (ganador por perro dentro de ventana) =====
+        public async Task<IActionResult> MyBestMatches()
+        {
+            var userId = _userManager.GetUserId(User)!;
+
+            // Verificar que el usuario tenga perfil de compatibilidad
+            var hasProfile = await _context.UserTraitResponses
+                .AnyAsync(r => r.UserId == userId);
+
+            if (!hasProfile)
+            {
+                TempData["Error"] = "Primero necesitas completar tu formulario de compatibilidad al adoptar un perrito. A partir de ahí podremos recomendarte mejores coincidencias.";
+                return RedirectToAction("Index", "Dogs");
+            }
+
+            // Obtener todos los perritos
+            var dogs = await _context.Dogs
+                .OrderByDescending(d => d.IntakeDate)
+                .ToListAsync();
+
+            var scores = await _compat.CalculateBestMatchesForUserAsync(userId);
+
+            // Solo perros con ventana abierta
+            var window = ResolveWindowDays(null);
+            var items = dogs
+                .Where(d => IsWindowOpen(d.IntakeDate, window))
+                .Select(d => new MyBestMatchVm
+                {
+                    DogId = d.Id,
+                    DogName = d.Name,
+                    PhotoUrl = d.PhotoUrl,
+                    Size = d.Size,
+                    EnergyLevel = d.EnergyLevel,
+                    IntakeDate = d.IntakeDate,
+                    CompatibilityScore = scores.TryGetValue(d.Id, out var s) ? s : 50
+                })
+                .OrderByDescending(x => x.CompatibilityScore)
+                .ThenBy(x => x.IntakeDate)
+                .Take(3) // Top 3 perritos para el usuario
+                .ToList();
+
+            if (!items.Any())
+            {
+                TempData["Info"] = "Por ahora no hay perritos disponibles dentro de la ventana de adopción. Vuelve a revisar pronto 🐶";
+                return RedirectToAction("Index", "Dogs");
+            }
+
+            ViewBag.WindowDays = window;
+            return View(items);
+        }
+
+
+        //  Mejor candidato (ganador por perro)
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BestMatches(int? days)
         {

@@ -11,7 +11,7 @@
         public int TraitId { get; set; }
         public PersonalityTrait? Trait { get; set; }
 
-        // Valor del usuario (1 a 5, por ejemplo)
+        // Valor del usuario (1 a 5)
         public int Value { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

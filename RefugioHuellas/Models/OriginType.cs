@@ -7,7 +7,7 @@ namespace RefugioHuellas.Models
         public int Id { get; set; }          // PK
         public string Name { get; set; } = string.Empty; // Calle, Rescate policial, etc.
 
-        // Relación 1:N (un origen puede tener muchos perros)
+        // Relación
         public ICollection<Dog> Dogs { get; set; } = new List<Dog>();
     }
 }

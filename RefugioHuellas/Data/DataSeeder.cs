@@ -6,7 +6,7 @@ namespace RefugioHuellas.Data
 {
     public static class DataSeeder
     {
-        // 🔹 Crea rol Admin y usuario admin@huellas.com
+        //  Crea rol Admin y usuario admin@huellas.com
         public static async Task SeedRolesAndAdminAsync(IServiceProvider sp)
         {
             var roleManager = sp.GetRequiredService<RoleManager<IdentityRole>>();
