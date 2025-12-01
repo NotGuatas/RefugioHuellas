@@ -35,10 +35,9 @@ namespace RefugioHuellas.Controllers
             => (days.HasValue && days.Value > 0 && days.Value <= 60) ? days.Value : WINDOW_DAYS_DEFAULT;
 
         private static bool IsWindowOpen(DateTime intakeUtc, int windowDays)
-            => DateTime.UtcNow < intakeUtc.AddDays(windowDays);
+            => true;
 
-        // Crear solicitud (bloquea si la ventana está cerrada) 
-        // Evitar duplicados y bloquear si la ventana ya cerró
+        // Crear solicitud 
         [HttpGet]
         public async Task<IActionResult> Create(int dogId)
         {
@@ -50,15 +49,6 @@ namespace RefugioHuellas.Controllers
             {
                 TempData["Error"] = "El perro seleccionado no existe.";
                 return RedirectToAction("Index", "Dogs");
-            }
-
-            // Bloqueo por ventana cerrada (usa la misma regla que en Admin: 7 días por defecto)
-            int window = ResolveWindowDays(null); // por defecto 7
-            var closeAtUtc = dog.IntakeDate.AddDays(window);
-            if (DateTime.UtcNow >= closeAtUtc)
-            {
-                TempData["Error"] = $"La ventana de adopción de {dog.Name} cerró el {closeAtUtc.ToLocalTime():g}.";
-                return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
             // Si el usuario ya aplicó para este perro, no permitir repetir
@@ -78,6 +68,7 @@ namespace RefugioHuellas.Controllers
             ViewBag.DogId = dogId;
             return View();
         }
+        
 
         // (POST valida nombre, apellido y teléfono 
         //  y luego envía al formulario de compatibilidad)
@@ -325,12 +316,11 @@ namespace RefugioHuellas.Controllers
 
 
 
-        //  Mejor candidato (ganador por perro)
+        //  Mejor candidato (ganador por perro) - sin esperar ventana
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BestMatches(int? days)
         {
-            int window = ResolveWindowDays(days);
-
+            // Ignoramos "days" a propósito: ya no usamos ventana de días
             var dogs = await _context.Dogs
                 .OrderByDescending(d => d.IntakeDate)
                 .ToListAsync();
@@ -339,11 +329,9 @@ namespace RefugioHuellas.Controllers
 
             foreach (var dog in dogs)
             {
-                var start = dog.IntakeDate;
-                var end = dog.IntakeDate.AddDays(window);
-
+                // Tomamos SIEMPRE la mejor solicitud para ese perro, sin filtrar por fechas
                 var topApp = await _context.AdoptionApplications
-                    .Where(a => a.DogId == dog.Id && a.CreatedAt >= start && a.CreatedAt < end)
+                    .Where(a => a.DogId == dog.Id)
                     .OrderByDescending(a => a.CompatibilityScore)
                     .ThenBy(a => a.CreatedAt)
                     .FirstOrDefaultAsync();
@@ -383,9 +371,9 @@ namespace RefugioHuellas.Controllers
                 }
             }
 
-            ViewBag.WindowDays = window;
             return View(result);
         }
+
 
         // ===== Aprobar ganador desde BestMatches =====
         [Authorize(Roles = "Admin")]

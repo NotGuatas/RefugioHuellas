@@ -55,7 +55,7 @@ namespace RefugioHuellas.Controllers
                 return RedirectToAction("Details", "Dogs", new { id = dogId });
             }
 
-            // Armar formulario (5 preguntas)
+            // Armar formulario 
             var traits = await _db.PersonalityTraits
                                   .Where(t => t.Active)
                                   .OrderBy(t => t.Id)
@@ -85,13 +85,6 @@ namespace RefugioHuellas.Controllers
             var userId = _userManager.GetUserId(User)!;
             var dog = await _db.Dogs.FindAsync(vm.DogId);
             if (dog == null) return NotFound();
-
-            // BLOQUEO DE VENTANA: evita guardar solicitudes fuera del plazo
-            if (DateTime.UtcNow >= dog.IntakeDate.AddDays(WINDOW_DAYS_DEFAULT))
-            {
-                TempData["Error"] = $"La ventana de postulaciones para {dog.Name} ya está cerrada.";
-                return RedirectToAction("Details", "Dogs", new { id = vm.DogId });
-            }
 
             // Doble verificación anti-duplicado en POST
             var existing = await _db.AdoptionApplications
