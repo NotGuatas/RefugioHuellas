@@ -11,9 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// DbContext: con SQL Server
+// DbContext: con SQL 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString)
+);
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -64,10 +65,18 @@ app.MapGet("/", (HttpContext ctx) =>
     return Results.Redirect(target);
 });
 
+// Servir React desde /app
+app.MapGet("/app/{*path}", async context =>
+{
+    context.Response.ContentType = "text/html";
+    await context.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath, "react", "index.html"));
+});
+
+
 // Ruta por defecto
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dogs}/{action=Index}/{id?}")
+    pattern: "{controller=Dogs}/{action=Index}/{id?}")  
     .WithStaticAssets();
 
 

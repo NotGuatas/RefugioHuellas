@@ -44,7 +44,7 @@ namespace RefugioHuellas.Controllers
             if (id == null) return NotFound();
 
             var dog = await _context.Dogs
-                .Include(d => d.OriginType)     // 🔹 cargar origen
+                .Include(d => d.OriginType)     // cargar origen    
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (dog == null) return NotFound();
@@ -97,6 +97,10 @@ namespace RefugioHuellas.Controllers
             }
 
             await HandleUploadAsync(dog); // establece dog.PhotoUrl
+
+
+            dog.IntakeDate = DateTime.UtcNow;
+
 
             _context.Add(dog);
             await _context.SaveChangesAsync();
