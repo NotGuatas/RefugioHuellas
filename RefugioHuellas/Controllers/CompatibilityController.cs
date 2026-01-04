@@ -17,7 +17,6 @@ namespace RefugioHuellas.Controllers
         private readonly CompatibilityService _compat;
 
 
-        private const int WINDOW_DAYS_DEFAULT = 7; // Ventana de adopción por defecto (7 días)
 
         public CompatibilityController(ApplicationDbContext db, UserManager<IdentityUser> userManager, CompatibilityService compat)
         {
@@ -34,13 +33,7 @@ namespace RefugioHuellas.Controllers
             var userId = _userManager.GetUserId(User)!;
             var dog = await _db.Dogs.FindAsync(dogId);
             if (dog == null) return NotFound();
-
-            //  BLOQUEO DE VENTANA: si el perro ya cumplió 7 días desde su ingreso, no se puede postular
-            if (DateTime.UtcNow >= dog.IntakeDate.AddDays(WINDOW_DAYS_DEFAULT))
-            {
-                TempData["Error"] = $"La ventana de postulaciones para {dog.Name} ya está cerrada.";
-                return RedirectToAction("Details", "Dogs", new { id = dogId });
-            }
+        
 
             //  Si ya existe solicitud: NO permitir nuevo formulario
             var existing = await _db.AdoptionApplications
