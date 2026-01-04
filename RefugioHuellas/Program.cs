@@ -2,6 +2,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RefugioHuellas.Data;
 using RefugioHuellas.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,8 +38,50 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
+
+// JWT
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var jwtKey = jwtSection["Key"]!;
+var jwtIssuer = jwtSection["Issuer"]!;
+var jwtAudience = jwtSection["Audience"]!;
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
+
+
+
 // Servicio de compatibilidad
 builder.Services.AddScoped<CompatibilityService>();
+
+//Activar Cors para React
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -52,7 +98,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("ReactPolicy");
 app.UseAuthentication();
+app.UseCors("AllowReact");
 app.UseAuthorization();
 
 app.MapStaticAssets();
@@ -72,6 +120,7 @@ app.MapGet("/app/{*path}", async context =>
     await context.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath, "react", "index.html"));
 });
 
+app.MapControllers();
 
 // Ruta por defecto
 app.MapControllerRoute(
