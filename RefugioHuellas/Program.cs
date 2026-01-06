@@ -19,8 +19,15 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 // DbContext: con SQL 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString)
-);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions =>
+        {
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorCodesToAdd: null);
+        }));
+
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -97,8 +104,9 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine("Seeder failed: " + ex.Message);
+    app.Logger.LogError(ex, "DbSeeder failed. App will continue without seeding.");
 }
+
 
 //  Pipeline de ejecución
 if (!app.Environment.IsDevelopment())
