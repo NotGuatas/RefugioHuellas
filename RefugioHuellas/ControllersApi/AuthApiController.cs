@@ -55,8 +55,8 @@ namespace RefugioHuellas.ControllersApi
             });
         }
 
-        [HttpGet("me")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("me")]
         public async Task<IActionResult> Me()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
