@@ -1,5 +1,8 @@
-const BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || window.location.origin;
+const envBase = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = (envBase && envBase.trim() !== "")
+    ? envBase.replace(/^http:\/\//i, "https://")
+    : window.location.origin;
+
 
 
 async function parseJson(res) {
