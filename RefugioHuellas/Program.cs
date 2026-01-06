@@ -83,7 +83,14 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 //  Migraciones + SEED (roles, admin, traits, perros demo)
-await DbSeeder.SeedAsync(app.Services);
+try
+{
+    await DbSeeder.SeedAsync(app.Services);
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Seeder failed: " + ex.Message);
+}
 
 //  Pipeline de ejecución
 if (!app.Environment.IsDevelopment())
