@@ -23,8 +23,8 @@ export default function DogCard({ dog }) {
             <div style={{ flex: 1 }}>
                 <h3 style={{ margin: 0 }}>{dog.name}</h3>
                 <div style={{ fontSize: 14, color: "#444" }}>
-                    <div>Tamaño: {dog.size}</div>
-                    <div>Energía: {dog.energyLevel}</div>
+                    <div>Tamaï¿½o: {dog.size}</div>
+                    <div>Energï¿½a: {dog.energyLevel}</div>
                     <div>Entorno: {dog.idealEnvironment}</div>
                 </div>
             </div>

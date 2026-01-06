@@ -20,7 +20,7 @@ export default function Login({ onLogin }) {
 
     return (
         <div style={{ maxWidth: 360, margin: "40px auto" }}>
-            <h2>Iniciar sesión</h2>
+            <h2>Iniciar sesiï¿½n</h2>
 
             {err && (
                 <div style={{ background: "#ffd9d9", padding: 10, marginBottom: 10 }}>
