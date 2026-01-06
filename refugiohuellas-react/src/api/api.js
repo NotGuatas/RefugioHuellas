@@ -1,5 +1,6 @@
 const BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "https://refugiohuellas-2.onrender.com";
+    import.meta.env.VITE_API_BASE_URL || window.location.origin;
+
 
 async function parseJson(res) {
     const data = await res.json().catch(() => null);
