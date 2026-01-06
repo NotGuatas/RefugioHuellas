@@ -102,12 +102,8 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 // Ruta raíz: si hay sesión => /Dogs, si no => login
-app.MapGet("/", (HttpContext ctx) =>
-{
-    var isAuth = ctx.User?.Identity?.IsAuthenticated == true;
-    var target = isAuth ? "/Dogs" : "/Identity/Account/Login";
-    return Results.Redirect(target);
-});
+app.MapGet("/", () => Results.Redirect("/app"));
+
 
 
 app.MapControllers();

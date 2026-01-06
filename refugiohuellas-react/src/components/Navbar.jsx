@@ -18,18 +18,23 @@ export default function Navbar({ user, onLogout }) {
                 <Link to="/dogs" style={{ textDecoration: "none", fontWeight: 700 }}>
                     RefugioHuellas
                 </Link>
+
                 {user && (
                     <span style={{ fontSize: 14, color: "#444" }}>
-                        {user.email} {user.roles?.length ? `(${user.roles.join(", ")})` : ""}
+                        {user.email}
+                        {user.roles?.length ? ` (${user.roles.join(", ")})` : ""}
                     </span>
                 )}
             </div>
 
-            <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                 {!user ? (
-                    <Link to="/login">Login</Link>
+                    <Link to="/login">Ingresar</Link>
                 ) : (
-                    <button onClick={onLogout}>Cerrar sesi�n</button>
+                    <>
+                        <Link to="/profile">Mi perfil</Link>
+                        <button onClick={onLogout}>Cerrar sesión</button>
+                    </>
                 )}
             </div>
         </div>

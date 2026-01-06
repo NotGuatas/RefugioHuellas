@@ -35,3 +35,28 @@ export async function getDog(id, token) {
     const res = await fetch(`${BASE_URL}/api/dogs/${id}`, { headers });
     return parseJson(res); // incluye CompatibilityScore si hay token + perfil
 }
+
+export async function getTraits() {
+    const res = await fetch(`${BASE_URL}/api/traits`);
+    return parseJson(res);
+}
+
+export async function getMyTraits(token) {
+    const res = await fetch(`${BASE_URL}/api/user-traits/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return parseJson(res); // [{ traitId, value }]
+}
+
+export async function saveMyTraits(token, items) {
+    const res = await fetch(`${BASE_URL}/api/user-traits/me`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ items }),
+    });
+    return parseJson(res);
+}
+
