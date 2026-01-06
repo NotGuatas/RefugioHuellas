@@ -7,6 +7,9 @@ import Login from "./pages/Login";
 import Dogs from "./pages/Dogs";
 import DogDetail from "./pages/DogDetail";
 
+import Profile from "./pages/Profile";
+
+
 function PrivateRoute({ token, children }) {
     if (!token) return <Navigate to="/login" replace />;
     return children;
@@ -69,6 +72,17 @@ export default function App() {
                         </PrivateRoute>
                     }
                 />
+
+                <Route
+                    path="/profile"
+                    element={
+                        <PrivateRoute token={token}>
+                            <Profile token={token} />
+                        </PrivateRoute>
+                    }
+                />
+
+
 
                 <Route path="/" element={<Navigate to="/dogs" replace />} />
                 <Route path="*" element={<Navigate to="/dogs" replace />} />
