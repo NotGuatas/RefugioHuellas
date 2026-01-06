@@ -109,16 +109,11 @@ app.MapGet("/", (HttpContext ctx) =>
     return Results.Redirect(target);
 });
 
-// Servir React desde /app
-app.MapGet("/app/{*path}", async context =>
-{
-    context.Response.ContentType = "text/html";
-    await context.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath, "react", "index.html"));
-});
 
 app.MapControllers();
 
 
+app.MapFallbackToFile("/app", "app/index.html");
 app.MapFallbackToFile("/app/{*path:nonfile}", "app/index.html");
 
 // Ruta por defecto
