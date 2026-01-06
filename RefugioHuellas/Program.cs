@@ -118,6 +118,9 @@ app.MapGet("/app/{*path}", async context =>
 
 app.MapControllers();
 
+
+app.MapFallbackToFile("/app/{*path:nonfile}", "app/index.html");
+
 // Ruta por defecto
 app.MapControllerRoute(
     name: "default",
