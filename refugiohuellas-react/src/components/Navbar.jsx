@@ -29,7 +29,7 @@ export default function Navbar({ user, onLogout }) {
                 {!user ? (
                     <Link to="/login">Login</Link>
                 ) : (
-                    <button onClick={onLogout}>Cerrar sesión</button>
+                    <button onClick={onLogout}>Cerrar sesiï¿½n</button>
                 )}
             </div>
         </div>
