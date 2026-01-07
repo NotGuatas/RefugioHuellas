@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using RefugioHuellas.Data;
 using RefugioHuellas.Models;
 using RefugioHuellas.Models.ViewModels;
-using RefugioHuellas.Services;
+using RefugioHuellas.Services.Compatibility;
 using System.Text.RegularExpressions;
 
 
@@ -16,7 +16,7 @@ namespace RefugioHuellas.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly CompatibilityService _compat;
+        private readonly ICompatibilityService _compat;
 
         // ventana por defecto
         private const int WINDOW_DAYS_DEFAULT = 7;
@@ -24,7 +24,7 @@ namespace RefugioHuellas.Controllers
         public AdoptionApplicationsController(
             ApplicationDbContext context,
             UserManager<IdentityUser> userManager,
-            CompatibilityService compat)
+            ICompatibilityService compat)
         {
             _context = context;
             _userManager = userManager;

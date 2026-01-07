@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RefugioHuellas.Data;
-using RefugioHuellas.Services;
+using RefugioHuellas.Data.Repositories;
+using RefugioHuellas.Services.Compatibility;
+using RefugioHuellas.Services.Compatibility.Rules;
+using RefugioHuellas.Services.Storage;
 using System.Text;
 
 
@@ -54,33 +57,51 @@ var jwtKey = jwtSection["Key"]!;
 var jwtIssuer = jwtSection["Issuer"]!;
 var jwtAudience = jwtSection["Audience"]!;
 
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication()
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtIssuer,
-        ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            )
+        };
+    });
 
 
 
 
 
 
-// Servicio de compatibilidad
-builder.Services.AddScoped<CompatibilityService>();
+
+// ----------------- Inyección de dependencias (SOLID + Patrones) -----------------
+
+// Repository pattern (abstraer EF Core)
+builder.Services.AddScoped<IDogRepository, EfDogRepository>();
+builder.Services.AddScoped<ITraitRepository, EfTraitRepository>();
+builder.Services.AddScoped<IUserTraitResponseRepository, EfUserTraitResponseRepository>();
+
+// Strategy pattern: reglas por rasgo (se agregan sin tocar el servicio principal)
+builder.Services.AddScoped<ITraitRule, HousingTypeRule>();
+builder.Services.AddScoped<ITraitRule, SpaceRule>();
+builder.Services.AddScoped<ITraitRule, TimeRule>();
+builder.Services.AddScoped<ITraitRule, NoiseToleranceRule>();
+builder.Services.AddScoped<ITraitRule, ActivityLevelRule>();
+
+// Factory Method: resolver regla por clave
+builder.Services.AddScoped<ITraitRuleFactory, TraitRuleFactory>();
+
+// Servicio de compatibilidad (DIP: controladores dependen de ICompatibilityService)
+builder.Services.AddScoped<ICompatibilityService, CompatibilityService>();
+
+// SRP: almacenamiento de fotos aislado del controlador
+builder.Services.AddScoped<IPhotoStorage, LocalPhotoStorage>();
 
 //Activar Cors para React
 
@@ -131,7 +152,7 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 // Ruta raíz: si hay sesión => /Dogs, si no => login
-app.MapGet("/", () => Results.Redirect("/app"));
+app.MapGet("/", () => Results.Redirect("/Dogs"));
 
 
 
@@ -144,7 +165,7 @@ app.MapFallbackToFile("/app/{*path:nonfile}", "app/index.html");
 // Ruta por defecto
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dogs}/{action=Index}/{id?}")  
+    pattern: "{controller=Dogs}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 

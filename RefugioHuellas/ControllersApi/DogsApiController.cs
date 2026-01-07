@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RefugioHuellas.Data;
-using RefugioHuellas.Services;
+using RefugioHuellas.Services.Compatibility;
 
 namespace RefugioHuellas.Controllers.Api
 {
@@ -13,7 +13,7 @@ namespace RefugioHuellas.Controllers.Api
     {
         private readonly ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly CompatibilityService _compat;
+        private readonly ICompatibilityService _compat;
 
         public DogsApiController(ApplicationDbContext db, UserManager<IdentityUser> userManager, CompatibilityService compat)
         {

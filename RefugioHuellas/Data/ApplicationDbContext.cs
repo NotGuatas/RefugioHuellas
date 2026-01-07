@@ -9,7 +9,7 @@ namespace RefugioHuellas.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options) { }
 
-        public DbSet<Dog> Dogs => Set<Dog>();   
+        public DbSet<Dog> Dogs => Set<Dog>();
 
         public DbSet<AdoptionApplication> AdoptionApplications => Set<AdoptionApplication>();
 
