@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using RefugioHuellas.Data;
 using RefugioHuellas.Models;
 using RefugioHuellas.Models.ViewModels;
-using RefugioHuellas.Services;
+using RefugioHuellas.Services.Compatibility;
 
 namespace RefugioHuellas.Controllers
 {
@@ -14,11 +14,9 @@ namespace RefugioHuellas.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly CompatibilityService _compat;
+        private readonly ICompatibilityService _compat;
 
-
-
-        public CompatibilityController(ApplicationDbContext db, UserManager<IdentityUser> userManager, CompatibilityService compat)
+        public CompatibilityController(ApplicationDbContext db, UserManager<IdentityUser> userManager, ICompatibilityService compat)
         {
             _db = db;
             _userManager = userManager;
@@ -33,7 +31,7 @@ namespace RefugioHuellas.Controllers
             var userId = _userManager.GetUserId(User)!;
             var dog = await _db.Dogs.FindAsync(dogId);
             if (dog == null) return NotFound();
-        
+
 
             //  Si ya existe solicitud: NO permitir nuevo formulario
             var existing = await _db.AdoptionApplications

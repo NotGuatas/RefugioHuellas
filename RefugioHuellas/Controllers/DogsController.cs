@@ -5,7 +5,9 @@ using RefugioHuellas.Data;
 using RefugioHuellas.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Identity;
-using RefugioHuellas.Services;
+using RefugioHuellas.Data.Repositories;
+using RefugioHuellas.Services.Compatibility;
+using RefugioHuellas.Services.Storage;
 
 namespace RefugioHuellas.Controllers
 {
@@ -13,27 +15,33 @@ namespace RefugioHuellas.Controllers
     public class DogsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IDogRepository _dogs;
+        private readonly IUserTraitResponseRepository _responses;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly CompatibilityService _compat;
+        private readonly ICompatibilityService _compat;
+        private readonly IPhotoStorage _photos;
 
         public DogsController(
             ApplicationDbContext context,
+            IDogRepository dogs,
+            IUserTraitResponseRepository responses,
             UserManager<IdentityUser> userManager,
-            CompatibilityService compat)
+            ICompatibilityService compat,
+            IPhotoStorage photos)
         {
             _context = context;
+            _dogs = dogs;
+            _responses = responses;
             _userManager = userManager;
             _compat = compat;
+            _photos = photos;
         }
 
         // ----------- PÚBLICO -----------
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            var dogs = await _context.Dogs
-                .Include(d => d.OriginType)
-                .OrderByDescending(d => d.IntakeDate)
-                .ToListAsync();
+            var dogs = await _dogs.GetAllAsync(includeOriginType: true);
 
             return View(dogs);
         }
@@ -43,9 +51,7 @@ namespace RefugioHuellas.Controllers
         {
             if (id == null) return NotFound();
 
-            var dog = await _context.Dogs
-                .Include(d => d.OriginType)     // cargar origen    
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var dog = await _dogs.GetByIdAsync(id.Value, includeOriginType: true);
 
             if (dog == null) return NotFound();
 
@@ -56,8 +62,7 @@ namespace RefugioHuellas.Controllers
                 var userId = _userManager.GetUserId(User);
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    var hasProfile = await _context.UserTraitResponses
-                        .AnyAsync(r => r.UserId == userId);
+                    var hasProfile = await _responses.HasProfileAsync(userId);
 
                     if (hasProfile)
                     {
@@ -187,29 +192,12 @@ namespace RefugioHuellas.Controllers
         private bool DogExists(int id)
             => _context.Dogs.Any(e => e.Id == id);
 
-        // Manejo de subida de imagen
+        // SRP: Manejo de subida de imagen queda delegado a un servicio.
         private async Task HandleUploadAsync(Dog dog)
         {
-            if (dog.PhotoFile != null && dog.PhotoFile.Length > 0)
-            {
-                var ext = Path.GetExtension(dog.PhotoFile.FileName);
-                var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                if (!allowed.Contains(ext.ToLower()))
-                {
-                    throw new InvalidOperationException("Formato de imagen no permitido.");
-                }
-
-                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                Directory.CreateDirectory(uploadsPath);
-
-                var fileName = $"{Guid.NewGuid()}{ext}";
-                var filePath = Path.Combine(uploadsPath, fileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await dog.PhotoFile.CopyToAsync(stream);
-
-                dog.PhotoUrl = $"/uploads/{fileName}";
-            }
+            var url = await _photos.SaveAsync(dog.PhotoFile);
+            if (!string.IsNullOrEmpty(url))
+                dog.PhotoUrl = url;
         }
     }
 }

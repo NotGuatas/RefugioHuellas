@@ -1,4 +1,4 @@
-const envBase = import.meta.env.VITE_API_BASE_URL;
+const envBase    = import.meta.env.VITE_API_BASE_URL;
 const BASE_URL = (envBase && envBase.trim() !== "")
     ? envBase.replace(/^http:\/\//i, "https://")
     : window.location.origin;
