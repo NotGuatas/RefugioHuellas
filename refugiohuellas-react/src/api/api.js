@@ -1,15 +1,13 @@
-const envBase    = import.meta.env.VITE_API_BASE_URL;
-const BASE_URL = (envBase && envBase.trim() !== "")
-    ? envBase.replace(/^http:\/\//i, "https://")
-    : window.location.origin;
+const envBase = import.meta.env.VITE_API_BASE_URL;
 
-
+export const BASE_URL =
+    envBase && envBase.trim() !== ""
+        ? envBase.replace(/\/$/, "")
+        : window.location.origin;
 
 async function parseJson(res) {
     const data = await res.json().catch(() => null);
-    if (!res.ok) {
-        throw new Error(data?.message || `Error ${res.status}`);
-    }
+    if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
     return data;
 }
 
@@ -19,7 +17,7 @@ export async function login(email, password) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
     });
-    return parseJson(res); // { token, email, userId, roles }
+    return parseJson(res);
 }
 
 export async function me(token) {
