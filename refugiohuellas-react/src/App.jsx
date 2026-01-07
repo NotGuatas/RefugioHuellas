@@ -1,43 +1,20 @@
-import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { me } from "./api/api";
-
 import Navbar from "./components/Navbar";
+
 import Login from "./pages/Login";
 import Dogs from "./pages/Dogs";
 import DogDetail from "./pages/DogDetail";
-
 import Profile from "./pages/Profile";
 
-
-function PrivateRoute({ token, children }) {
-    if (!token) return <Navigate to="/login" replace />;
-    return children;
-}
+import RequireAuth from "./auth/RequireAuth";
+import { useAuth } from "./auth/AuthContext";
 
 export default function App() {
-    const [token, setToken] = useState(localStorage.getItem("token"));
-    const [user, setUser] = useState(null);
+    const { user, token, logout, isAuth, loading } = useAuth();
 
-    useEffect(() => {
-        if (!token) {
-            setUser(null);
-            return;
-        }
-
-        me(token)
-            .then(setUser)
-            .catch(() => {
-                localStorage.removeItem("token");
-                setToken(null);
-                setUser(null);
-            });
-    }, [token]);
-
-    const logout = () => {
-        localStorage.removeItem("token");
-        setToken(null);
-    };
+    if (loading) {
+        return <div style={{ padding: 16 }}>Cargando...</div>;
+    }
 
     return (
         <div style={{ padding: 16 }}>
@@ -46,46 +23,38 @@ export default function App() {
             <Routes>
                 <Route
                     path="/login"
-                    element={
-                        token ? (
-                            <Navigate to="/dogs" replace />
-                        ) : (
-                            <Login onLogin={setToken} />
-                        )
-                    }
+                    element={isAuth ? <Navigate to="/dogs" replace /> : <Login />}
                 />
 
                 <Route
                     path="/dogs"
                     element={
-                        <PrivateRoute token={token}>
+                        <RequireAuth>
                             <Dogs />
-                        </PrivateRoute>
+                        </RequireAuth>
                     }
                 />
 
                 <Route
                     path="/dogs/:id"
                     element={
-                        <PrivateRoute token={token}>
+                        <RequireAuth>
                             <DogDetail token={token} />
-                        </PrivateRoute>
+                        </RequireAuth>
                     }
                 />
 
                 <Route
                     path="/profile"
                     element={
-                        <PrivateRoute token={token}>
+                        <RequireAuth>
                             <Profile token={token} />
-                        </PrivateRoute>
+                        </RequireAuth>
                     }
                 />
 
-
-
-                <Route path="/" element={<Navigate to="/dogs" replace />} />
-                <Route path="*" element={<Navigate to="/dogs" replace />} />
+                <Route path="/" element={<Navigate to={isAuth ? "/dogs" : "/login"} replace />} />
+                <Route path="*" element={<Navigate to={isAuth ? "/dogs" : "/login"} replace />} />
             </Routes>
         </div>
     );

@@ -1,26 +1,25 @@
 import { useState } from "react";
-import { login } from "../api/api";
+import { useAuth } from "../auth/AuthContext";
 
-export default function Login({ onLogin }) {
+export default function Login() {
+    const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [err, setErr] = useState("");
 
-    const handleSubmit = async (e) => {
+    const submit = async (e) => {
         e.preventDefault();
         setErr("");
         try {
-            const data = await login(email, password);
-            localStorage.setItem("token", data.token);
-            onLogin(data.token);
+            await login(email, password);
         } catch (ex) {
-            setErr(ex.message);
+            setErr(ex.message || "Error");
         }
     };
 
     return (
         <div style={{ maxWidth: 360, margin: "40px auto" }}>
-            <h2>Iniciar sesi�n</h2>
+            <h2>Iniciar sesión</h2>
 
             {err && (
                 <div style={{ background: "#ffd9d9", padding: 10, marginBottom: 10 }}>
@@ -28,7 +27,7 @@ export default function Login({ onLogin }) {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={submit}>
                 <div style={{ marginBottom: 10 }}>
                     <label>Email</label>
                     <input
@@ -48,9 +47,7 @@ export default function Login({ onLogin }) {
                     />
                 </div>
 
-                <button style={{ width: "100%", padding: 10 }}>
-                    Entrar
-                </button>
+                <button style={{ width: "100%", padding: 10 }}>Entrar</button>
             </form>
         </div>
     );

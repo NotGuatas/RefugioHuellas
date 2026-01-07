@@ -29,8 +29,8 @@ export default function DogDetail({ token }) {
             />
 
             <div>
-                <div><b>Tama�o:</b> {dog.size}</div>
-                <div><b>Energ�a:</b> {dog.energyLevel}</div>
+                <div><b>Tamaño:</b> {dog.size}</div>
+                <div><b>Energía:</b> {dog.energyLevel}</div>
                 <div><b>Entorno ideal:</b> {dog.idealEnvironment}</div>
                 <div>
                     <b>Compatibilidad:</b>{" "}
