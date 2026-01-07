@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
                 setUser(me);
                 localStorage.setItem("user", JSON.stringify(me));
             } catch {
-                // token inválido/expirado
+                // token invalido/expirado
                 setToken("");
                 setUser(null);
                 localStorage.removeItem("token");
@@ -36,7 +36,9 @@ export function AuthProvider({ children }) {
         }
 
         boot();
-        return () => (alive = false);
+        return () => {
+            alive = false;
+        };
     }, [token]);
 
     async function login(email, password) {
@@ -68,4 +70,3 @@ export function AuthProvider({ children }) {
 export function useAuth() {
     return useContext(AuthCtx);
 }
-
