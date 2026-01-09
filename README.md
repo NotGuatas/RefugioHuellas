@@ -149,7 +149,7 @@ Estos patrones aseguran una arquitectura desacoplada, reutilizable y alineada co
 
 Git
 
-SQLite (DB Browser for SQLite)
+PostgreSQL
 
 # ▶️ Cómo correr el proyecto
 
