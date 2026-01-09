@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using RefugioHuellas.Data;
 using RefugioHuellas.Data.Repositories;
@@ -103,6 +105,10 @@ builder.Services.AddScoped<ICompatibilityService, CompatibilityService>();
 // SRP: almacenamiento de fotos aislado del controlador
 builder.Services.AddScoped<IPhotoStorage, LocalPhotoStorage>();
 
+
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/var/data/dpkeys"));
 //Activar Cors para React
 
 builder.Services.AddCors(options =>
@@ -118,14 +124,28 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-//  Migraciones + SEED (roles, admin, traits, perros demo)
-try
+// Migraciones + seed SOLO cuando tú lo habilites explícitamente
+if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("RUN_SEEDER") == "true")
 {
-    await DbSeeder.SeedAsync(app.Services);
+    try
+    {
+        await DbSeeder.SeedAsync(app.Services);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "DbSeeder failed. App will continue without seeding.");
+    }
 }
-catch (Exception ex)
+
+
+var uploadRoot = Environment.GetEnvironmentVariable("UPLOAD_ROOT");
+if (!string.IsNullOrWhiteSpace(uploadRoot))
 {
-    app.Logger.LogError(ex, "DbSeeder failed. App will continue without seeding.");
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(uploadRoot),
+        RequestPath = "/uploads"
+    });
 }
 
 

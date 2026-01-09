@@ -1,30 +1,30 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using RefugioHuellas.Services.Storage;
 
-namespace RefugioHuellas.Services.Storage
+public class LocalPhotoStorage : IPhotoStorage
 {
-    /// SRP: encapsula el guardado de imágenes en wwwroot/uploads.
-    public class LocalPhotoStorage : IPhotoStorage
+    private static readonly string[] Allowed = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+    public async Task<string?> SaveAsync(IFormFile? file)
     {
-        private static readonly string[] Allowed = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        if (file == null || file.Length == 0) return null;
 
-        public async Task<string?> SaveAsync(IFormFile? file)
-        {
-            if (file == null || file.Length == 0) return null;
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!Allowed.Contains(ext))
+            throw new InvalidOperationException("Formato de imagen no permitido.");
 
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!Allowed.Contains(ext))
-                throw new InvalidOperationException("Formato de imagen no permitido.");
+        var root = Environment.GetEnvironmentVariable("UPLOAD_ROOT");
+        var uploadsPath = string.IsNullOrWhiteSpace(root)
+            ? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")
+            : root;
 
-            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-            Directory.CreateDirectory(uploadsPath);
+        Directory.CreateDirectory(uploadsPath);
 
-            var fileName = $"{Guid.NewGuid()}{ext}";
-            var filePath = Path.Combine(uploadsPath, fileName);
+        var fileName = $"{Guid.NewGuid()}{ext}";
+        var filePath = Path.Combine(uploadsPath, fileName);
 
-            using var stream = new FileStream(filePath, FileMode.Create);
-            await file.CopyToAsync(stream);
+        using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
 
-            return $"/uploads/{fileName}";
-        }
+        return $"/uploads/{fileName}";
     }
 }
