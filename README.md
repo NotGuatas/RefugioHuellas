@@ -1,9 +1,9 @@
-RefugioHuellas 🐾
+# RefugioHuellas 🐾
 
 RefugioHuellas es una aplicación web ASP.NET Core MVC (.NET 9) para la gestión de adopciones de perros en un refugio.
 Incluye autenticación con Identity, control de roles (Admin / Usuario), evaluación de compatibilidad entre adoptante y perro, y administración completa de los registros.
 
-🔐 Autenticación y roles
+# 🔐 Autenticación y roles
 
 Sistema de login y registro con ASP.NET Core Identity.
 
@@ -13,7 +13,7 @@ Admin: Gestiona perros, revisa solicitudes y aprueba adopciones.
 
 Usuario: Visualiza perros disponibles, llena formularios de compatibilidad y envía solicitudes.
 
-🐕 Gestión de perros
+# 🐕 Gestión de perros
 
 Crear, editar, eliminar y listar perros (solo Admin).
 
@@ -39,13 +39,13 @@ Fecha de ingreso
 
 Esterilización
 
-📄 Solicitudes de adopción
+# 📄 Solicitudes de adopción
 
 Los usuarios pueden enviar una solicitud personalizada por perro.
 
 Cada solicitud se evalúa mediante un formulario de compatibilidad dinámico.
 
-🧠 Sistema de compatibilidad inteligente
+# 🧠 Sistema de compatibilidad inteligente
 
 Evaluación basada en:
 
@@ -57,7 +57,7 @@ Cálculo de un porcentaje de compatibilidad (0–100%) mediante un modelo de pon
 
 Prevención de duplicados: un usuario no puede solicitar el mismo perro más de una vez.
 
-🛠 Panel administrativo avanzado
+# 🛠 Panel administrativo avanzado
 
 El Administrador tiene acceso a tres vistas clave:
 
@@ -83,7 +83,7 @@ Provisional → ventana aún abierta.
 
 Cerrada → ventana finalizada; permite aprobar al mejor candidato.
 
-⏳ Ventana de adopción
+# ⏳ Ventana de adopción
 
 Cada perro tiene una ventana temporal de evaluación (por defecto 7 días) desde su ingreso.
 
@@ -99,7 +99,7 @@ No se aceptan nuevas solicitudes.
 
 Solo queda disponible el mejor candidato para aprobación.
 
-🔄 Flujo de adopción
+# 🔄 Flujo de adopción
 
 El usuario inicia sesión.
 
@@ -111,11 +111,11 @@ El sistema guarda la solicitud con su puntaje.
 
 Al finalizar la ventana, el Admin aprueba al mejor candidato desde “Mejores Candidatos”.
 
-🧩 Arquitectura y buenas prácticas (SOLID & Patrones de Diseño)
+# 🧩 Arquitectura y buenas prácticas (SOLID & Patrones de Diseño)
 
 El proyecto aplica principios SOLID y patrones de diseño aprendidos en el taller formativo, manteniendo una arquitectura limpia, extensible y desacoplada.
 
-✅ Principios SOLID aplicados
+# ✅ Principios SOLID aplicados
 SRP – Single Responsibility Principle
 
 Cada clase tiene una única responsabilidad:
@@ -134,7 +134,7 @@ Para agregar un nuevo rasgo de compatibilidad, se crea una nueva clase sin modif
 
 El motor de compatibilidad no necesita cambios al añadir nuevas reglas.
 
-🧠 Patrones de Diseño implementados
+# 🧠 Patrones de Diseño implementados
 Strategy Pattern
 
 Cada regla de compatibilidad se implementa como una estrategia independiente.
@@ -163,7 +163,7 @@ Facilita mantenimiento, pruebas y escalabilidad.
 
 Estos patrones aseguran una arquitectura desacoplada, reutilizable y alineada con buenas prácticas profesionales.
 
-📋 Requisitos
+# 📋 Requisitos
 
 .NET 9 SDK
 
@@ -171,7 +171,7 @@ Git
 
 SQLite (DB Browser for SQLite)
 
-▶️ Cómo correr el proyecto
+# ▶️ Cómo correr el proyecto
 
 Clonar el repositorio:
 
@@ -193,7 +193,7 @@ Ejecutar la aplicación:
 
 dotnet run
 
-🔑 Credenciales iniciales
+# 🔑 Credenciales iniciales
 
 Admin
 
@@ -201,7 +201,7 @@ Email: admin@huellas.com
 
 Password: Admin123$
 
-🌐 Proyecto desplegado
+# 🌐 Proyecto desplegado
 
 https://refugiohuellas-2.onrender.com
 
