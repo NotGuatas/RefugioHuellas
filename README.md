@@ -77,23 +77,7 @@ Muestra los tres candidatos más compatibles por perro dentro de una ventana de 
 
 Mejores candidatos
 
-Resume el mejor candidato por cada perro
-
-# ⏳ Ventana de adopción
-
-Cada perro tiene una ventana temporal de evaluación (por defecto 7 días) desde su ingreso.
-
-Durante la ventana
-
-Se aceptan nuevas solicitudes.
-
-El sistema recalcula automáticamente los puntajes.
-
-Al cerrar la ventana
-
-No se aceptan nuevas solicitudes.
-
-Solo queda disponible el mejor candidato para aprobación.
+Resumen el mejor candidato por cada perro
 
 # 🔄 Flujo de adopción
 
