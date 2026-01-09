@@ -88,8 +88,9 @@ namespace RefugioHuellas.Controllers
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(
-            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,OriginTypeId,PhotoFile,HealthStatus,Sterilized,IntakeDate")]
+            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,OriginTypeId,PhotoFile,HealthStatus,Sterilized,PhotoUrl")]
             Dog dog)
+
         {
             // Requerimos imagen al crear
             if (dog.PhotoFile == null || dog.PhotoFile.Length == 0)
@@ -130,8 +131,8 @@ namespace RefugioHuellas.Controllers
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id,
-            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,OriginTypeId,PhotoFile,HealthStatus,Sterilized,IntakeDate,PhotoUrl")]
-            Dog dog)
+            [Bind("Id,Name,Description,Breed,Size,EnergyLevel,IdealEnvironment,OriginTypeId,PhotoFile,HealthStatus,Sterilized")]
+    Dog dog)
         {
             if (id != dog.Id) return NotFound();
 
@@ -141,24 +142,43 @@ namespace RefugioHuellas.Controllers
                 return View(dog);
             }
 
+            var existing = await _context.Dogs.FirstOrDefaultAsync(d => d.Id == id);
+            if (existing == null) return NotFound();
+
             try
             {
-                // Si viene nueva foto, la reemplazamos
-                await HandleUploadAsync(dog);
+                // Actualiza campos editables
+                existing.Name = dog.Name;
+                existing.Description = dog.Description;
+                existing.Breed = dog.Breed;
+                existing.Size = dog.Size;
+                existing.EnergyLevel = dog.EnergyLevel;
+                existing.IdealEnvironment = dog.IdealEnvironment;
+                existing.OriginTypeId = dog.OriginTypeId;
+                existing.HealthStatus = dog.HealthStatus;
+                existing.Sterilized = dog.Sterilized;
 
-                _context.Update(dog);
+                // Si viene nueva foto, reemplaza PhotoUrl
+                if (dog.PhotoFile != null && dog.PhotoFile.Length > 0)
+                {
+                    var url = await _photos.SaveAsync(dog.PhotoFile);
+                    if (!string.IsNullOrEmpty(url))
+                        existing.PhotoUrl = url;
+                }
+
+                // IMPORTANTÍSIMO: NO toques IntakeDate (se queda el valor original en BD)
                 await _context.SaveChangesAsync();
 
                 TempData["Ok"] = "Perro actualizado correctamente.";
+                return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!DogExists(dog.Id)) return NotFound();
                 throw;
             }
-
-            return RedirectToAction(nameof(Index));
         }
+
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
