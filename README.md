@@ -77,11 +77,7 @@ Muestra los tres candidatos más compatibles por perro dentro de una ventana de 
 
 Mejores candidatos
 
-Resume el mejor candidato por cada perro, con control de ventana temporal:
-
-Provisional → ventana aún abierta.
-
-Cerrada → ventana finalizada; permite aprobar al mejor candidato.
+Resume el mejor candidato por cada perro
 
 # ⏳ Ventana de adopción
 
