@@ -106,9 +106,13 @@ builder.Services.AddScoped<ICompatibilityService, CompatibilityService>();
 builder.Services.AddScoped<IPhotoStorage, LocalPhotoStorage>();
 
 
+var dpKeysPath = "/var/data/dpkeys";
+Directory.CreateDirectory(dpKeysPath);
 
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/var/data/dpkeys"));
+    .PersistKeysToFileSystem(new DirectoryInfo(dpKeysPath));
+
+
 //Activar Cors para React
 
 builder.Services.AddCors(options =>
@@ -141,6 +145,8 @@ if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("RUN_S
 var uploadRoot = Environment.GetEnvironmentVariable("UPLOAD_ROOT");
 if (!string.IsNullOrWhiteSpace(uploadRoot))
 {
+    Directory.CreateDirectory(uploadRoot);
+
     app.UseStaticFiles(new StaticFileOptions
     {
         FileProvider = new PhysicalFileProvider(uploadRoot),
