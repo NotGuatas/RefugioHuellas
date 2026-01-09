@@ -17,7 +17,7 @@ namespace RefugioHuellas.Controllers.Api
         public DogsApiController(
             ApplicationDbContext db,
             UserManager<IdentityUser> userManager,
-            ICompatibilityService compat)   // 👈 ESTA ES LA CLAVE
+            ICompatibilityService compat)  
         {
             _db = db;
             _userManager = userManager;
