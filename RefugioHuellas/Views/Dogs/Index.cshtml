@@ -3,8 +3,6 @@
 @{
     ViewData["Title"] = "Perros";
     bool isAdmin = User.IsInRole("Admin");
-
-    var windowDays = ViewBag.WindowDays is int d && d > 0 ? d : 7;
 }
 
 <div class="page-title">
@@ -52,9 +50,6 @@ else
         <tbody>
             @foreach (var item in Model)
             {
-                var closeAtUtc = item.IntakeDate.AddDays(windowDays);
-                var cerrada = DateTime.UtcNow >= closeAtUtc;
-
                 <tr>
                     <td>
                         @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
@@ -66,46 +61,49 @@ else
                             <span class="text-muted small">Sin foto</span>
                         }
                     </td>
+
                     <td class="fw-semibold">@item.Name</td>
                     <td>@item.Description</td>
                     <td>@item.HealthStatus</td>
                     <td>@(item.Sterilized ? "Sí" : "No")</td>
                     <td>@item.IntakeDate.ToLocalTime().ToShortDateString()</td>
+
                     <td class="text-end text-nowrap">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">
+                        <a asp-action="Details"
+                           asp-route-id="@item.Id"
+                           class="btn btn-sm btn-outline-secondary">
                             Ver
                         </a>
 
-                        @if (!cerrada)
+                        @* ADOPCIÓN SIEMPRE HABILITADA *@
+                        @if (User.Identity?.IsAuthenticated == true)
                         {
-                            if (User.Identity?.IsAuthenticated == true)
-                            {
-                                <a asp-controller="AdoptionApplications"
-                                   asp-action="Create"
-                                   asp-route-dogId="@item.Id"
-                                   class="btn btn-sm btn-success ms-1">
-                                    Adoptar
-                                </a>
-                            }
-                            else
-                            {
-                                <a href="/Identity/Account/Login?returnUrl=@Uri.EscapeDataString($"/AdoptionApplications/Create?dogId={item.Id}")"
-                                   class="btn btn-sm btn-success ms-1">
-                                    Adoptar
-                                </a>
-                            }
+                            <a asp-controller="AdoptionApplications"
+                               asp-action="Create"
+                               asp-route-dogId="@item.Id"
+                               class="btn btn-sm btn-success ms-1">
+                                Adoptar
+                            </a>
                         }
                         else
                         {
-                            <span class="badge bg-primary ms-1">CERRADA</span>
+                            <a href="/Identity/Account/Login?returnUrl=@Uri.EscapeDataString($"/AdoptionApplications/Create?dogId={item.Id}")"
+                               class="btn btn-sm btn-success ms-1">
+                                Adoptar
+                            </a>
                         }
 
                         @if (isAdmin)
                         {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning ms-1">
+                            <a asp-action="Edit"
+                               asp-route-id="@item.Id"
+                               class="btn btn-sm btn-warning ms-1">
                                 Editar
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger ms-1">
+
+                            <a asp-action="Delete"
+                               asp-route-id="@item.Id"
+                               class="btn btn-sm btn-danger ms-1">
                                 Eliminar
                             </a>
                         }
