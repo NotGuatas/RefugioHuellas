@@ -1,0 +1,57 @@
+:root {
+  --rh-green: #198754; 
+  --rh-bg: #f5f6f8;
+  --rh-card-radius: 16px;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--rh-bg);
+}
+
+.rh-page {
+  padding: 24px 0;
+}
+
+.rh-card {
+  background: #fff;
+  border-radius: var(--rh-card-radius);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.rh-card-inner {
+  padding: 18px;
+}
+
+.rh-title {
+  font-weight: 800;
+  margin: 0;
+}
+
+.rh-subtitle {
+  margin: 6px 0 0;
+  color: #6c757d;
+}
+
+.rh-table th {
+  color: #2b2f33;
+  font-weight: 700;
+}
+
+.rh-badge {
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.rh-footer {
+  color: #6c757d;
+  font-size: 14px;
+  padding: 28px 0;
+  text-align: center;
+}

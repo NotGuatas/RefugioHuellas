@@ -1,64 +1,44 @@
-const envBase = import.meta.env.VITE_API_BASE_URL;
+import { apiFetch } from "./client";
 
-export const BASE_URL =
-    envBase && envBase.trim() !== ""
-        ? envBase.replace(/\/$/, "")
-        : window.location.origin;
+// Estas funciones quedan por compatibilidad si algún componente las usa 
 
-async function parseJson(res) {
-    const data = await res.json().catch(() => null);
-    if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
-    return data;
+export function login(email, password) {
+  return apiFetch("/api/auth/login", {
+    method: "POST",
+    body: { email, password },
+  });
 }
 
-export async function login(email, password) {
-    const res = await fetch(`${BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-    });
-    return parseJson(res);
+export function me(token) {
+  return apiFetch("/api/auth/me", { token });
 }
 
-export async function me(token) {
-    const res = await fetch(`${BASE_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-    return parseJson(res);
+export function getDogs() {
+  return apiFetch("/api/dogs");
 }
 
-export async function getDogs() {
-    const res = await fetch(`${BASE_URL}/api/dogs`);
-    return parseJson(res); // [{id,name,photoUrl,size,energyLevel,idealEnvironment}]
+export function getDog(id, token) {
+  return apiFetch(`/api/dogs/${id}`, { token });
 }
 
-export async function getDog(id, token) {
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const res = await fetch(`${BASE_URL}/api/dogs/${id}`, { headers });
-    return parseJson(res); // incluye CompatibilityScore si hay token + perfil
+export function getTraits() {
+  return apiFetch("/api/traits");
 }
 
-export async function getTraits() {
-    const res = await fetch(`${BASE_URL}/api/traits`);
-    return parseJson(res);
+export function getMyTraits(token) {
+  return apiFetch("/api/user-traits/me", { token });
 }
 
-export async function getMyTraits(token) {
-    const res = await fetch(`${BASE_URL}/api/user-traits/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-    return parseJson(res); // [{ traitId, value }]
+export function getMyBestMatches(token) {
+  return apiFetch("/api/adoptionapplications/my-best-matches", { token });
 }
 
-export async function saveMyTraits(token, items) {
-    const res = await fetch(`${BASE_URL}/api/user-traits/me`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ items }),
-    });
-    return parseJson(res);
-}
 
+
+export function saveMyTraits(token, items) {
+  return apiFetch("/api/user-traits/me", {
+    method: "POST",
+    token,
+    body: { items },
+  });
+}
