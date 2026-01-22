@@ -33,6 +33,13 @@ namespace RefugioHuellas.ControllersApi
             public string Password { get; set; } = "";
         }
 
+        public class RegisterRequest
+        {
+            public string Email { get; set; } = "";
+            public string Password { get; set; } = "";
+        }
+
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
@@ -54,6 +61,44 @@ namespace RefugioHuellas.ControllersApi
                 userId = user.Id
             });
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
+                return BadRequest(new { message = "Email y password son obligatorios." });
+
+            var exists = await _userManager.FindByEmailAsync(req.Email);
+            if (exists != null)
+                return BadRequest(new { message = "El email ya está registrado." });
+
+            var user = new IdentityUser
+            {
+                UserName = req.Email,
+                Email = req.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, req.Password);
+            if (!result.Succeeded)
+            {
+                var msg = string.Join(" | ", result.Errors.Select(e => e.Description));
+                return BadRequest(new { message = msg });
+            }
+
+            // Asignar rol "User" 
+            if (await _userManager.IsInRoleAsync(user, "User") == false)
+            {
+                var rolesExist = _userManager.SupportsUserRole;
+                if (rolesExist)
+                {
+                    // intenta asignar, si falla no detenemos el registro
+                    try { await _userManager.AddToRoleAsync(user, "User"); } catch { }
+                }
+            }
+
+            return Ok(new { message = "Cuenta creada correctamente." });
+        }
+
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("me")]

@@ -11,6 +11,8 @@ using RefugioHuellas.Services.Compatibility;
 using RefugioHuellas.Services.Compatibility.Rules;
 using RefugioHuellas.Services.Storage;
 using System.Text;
+using System.Net;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 
 
