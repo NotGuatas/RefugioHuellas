@@ -45,3 +45,8 @@ wwwroot/uploads/
 # Node (por si luego agregas React)
 node_modules/
 dist/
+
+
+*.zip
+RefugioHuellas.zip
+refugiohuellas-react.zip
