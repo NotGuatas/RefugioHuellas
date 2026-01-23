@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 export default function Login() {
   const { login } = useAuth();
+  const nav = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
@@ -13,6 +15,7 @@ export default function Login() {
     setErr("");
     try {
       await login(email, password);
+      nav("/app/dogs"); // ✅ coherente con tu base "/app"
     } catch (ex) {
       setErr(ex.message || "Error");
     }

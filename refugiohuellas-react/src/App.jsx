@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 
 import Login from "./pages/Login";
+import Register from "./pages/Register"; // ✅ ADD
 import Dogs from "./pages/Dogs";
 import DogDetail from "./pages/DogDetail";
 import Profile from "./pages/Profile";
@@ -24,7 +25,6 @@ import AdminTopMatches from "./pages/admin/AdminTopMatches";
 export default function App() {
   const auth = useAuth();
 
-
   if (!auth) {
     return (
       <div className="container py-4">
@@ -43,11 +43,18 @@ export default function App() {
 
       <div className="container rh-page">
         <Routes>
+          {/* AUTH */}
           <Route
             path="/login"
             element={isAuth ? <Navigate to="/dogs" replace /> : <Login />}
           />
 
+          <Route
+            path="/register"
+            element={isAuth ? <Navigate to="/dogs" replace /> : <Register />}
+          />
+
+          {/* USER */}
           <Route
             path="/dogs"
             element={
@@ -96,11 +103,12 @@ export default function App() {
           <Route
             path="/my-best-matches"
             element={
-            <RequireAuth>
-              <MyBestMatches token={token} />
-            </RequireAuth>
-      }
+              <RequireAuth>
+                <MyBestMatches token={token} />
+              </RequireAuth>
+            }
           />
+
           {/* ADMIN */}
           <Route
             path="/admin/dogs"
@@ -167,6 +175,7 @@ export default function App() {
             }
           />
 
+          {/* DEFAULTS */}
           <Route
             path="/"
             element={<Navigate to={isAuth ? "/dogs" : "/login"} replace />}

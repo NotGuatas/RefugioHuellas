@@ -27,10 +27,9 @@ export default function Register() {
       await authApi.register(email, password);
       setOk("Cuenta creada. Iniciando sesión...");
 
-      // Auto-login para mantener UX
       await login(email, password);
 
-      nav("/dogs");
+      nav("/app/dogs"); // ✅ coherente con tu base "/app"
     } catch (ex) {
       setErr(ex.message || "Error");
     }
@@ -77,7 +76,7 @@ export default function Register() {
       </form>
 
       <div style={{ marginTop: 12 }}>
-        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+        ¿Ya tienes cuenta? <Link to="/app/login">Inicia sesión</Link>
       </div>
     </div>
   );
