@@ -32,10 +32,6 @@ export default function DogDetail({ token }) {
         <div><b>Tamaño:</b> {dog.size}</div>
         <div><b>Energía:</b> {dog.energyLevel}</div>
         <div><b>Entorno ideal:</b> {dog.idealEnvironment}</div>
-        <div>
-          <b>Compatibilidad:</b>{" "}
-          {dog.compatibilityScore ?? "No disponible (sin perfil o sin sesión)"}
-        </div>
       </div>
 
       <Link to={`/adopt/${dog.id}`} className="btn btn-success">
