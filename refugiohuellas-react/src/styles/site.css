@@ -55,3 +55,23 @@ body {
   padding: 28px 0;
   text-align: center;
 }
+
+
+.rh-card {
+  transition: transform .18s ease, box-shadow .18s ease;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.rh-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,.12);
+}
+
+/* Botones con “click feel” */
+.btn {
+  transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+}
+.btn:hover { filter: brightness(1.03); }
+.btn:active { transform: translateY(1px) scale(0.99); }
+.btn:focus { box-shadow: 0 0 0 .2rem rgba(25,135,84,.25); } /* verde */
