@@ -34,6 +34,14 @@ namespace RefugioHuellas.Controllers.Api
                     d.Id,
                     d.Name,
                     d.PhotoUrl,
+
+                    // 👇 CAMPOS QUE FALTABAN
+                    d.Description,
+                    d.HealthStatus,
+                    Sterilized = d.Sterilized,
+                    d.IntakeDate,
+
+                    // 👇 LOS QUE YA TENÍAS
                     d.Size,
                     d.EnergyLevel,
                     d.IdealEnvironment
@@ -64,11 +72,19 @@ namespace RefugioHuellas.Controllers.Api
                 dog.Id,
                 dog.Name,
                 dog.PhotoUrl,
+
+                dog.Description,
+                dog.HealthStatus,
+                Sterilized = dog.Sterilized,
+                dog.IntakeDate,
+
                 dog.Size,
                 dog.EnergyLevel,
                 dog.IdealEnvironment,
+
                 CompatibilityScore = score
             });
         }
+
     }
 }

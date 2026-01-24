@@ -11,7 +11,7 @@ namespace RefugioHuellas.Controllers
     [ApiController]
     [Route("api/adoptionapplications")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public class AdoptionApplicationsApiController : ControllerBase
+        public class AdoptionApplicationsApiController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
