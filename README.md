@@ -183,7 +183,7 @@ Password: Admin123$
 
 # 🌐 Proyecto desplegado
 
-https://refugiohuellas-2.onrender.com
+https://refugiohuellas-2.onrender.com/app/login
 
 Cuenta Admin:
 
