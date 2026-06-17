@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -10,21 +11,17 @@ using RefugioHuellas.Data.Repositories;
 using RefugioHuellas.Services.Compatibility;
 using RefugioHuellas.Services.Compatibility.Rules;
 using RefugioHuellas.Services.Storage;
-using System.Text;
-using System.Net;
-using Microsoft.AspNetCore.Authentication.Cookies;
-
-
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ----------------- Servicios -----------------
 
-// Cadena de conexión: debe existir "DefaultConnection" en appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// DbContext: con SQL 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
         npgsqlOptions =>
@@ -35,87 +32,118 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 errorCodesToAdd: null);
         }));
 
-
-// MVC
 builder.Services.AddControllersWithViews();
 
-// Identity + Roles
-builder.Services.AddDefaultIdentity<IdentityUser>(options =>
-{
-    options.SignIn.RequireConfirmedAccount = false;
-})
-.AddRoles<IdentityRole>()
-.AddEntityFrameworkStores<ApplicationDbContext>();
+// Identity Core: solo para que UserManager<IdentityUser> estÃ© disponible en DI
+// y para mantener la tabla AspNetUsers. NO registra login por cookie.
+builder.Services.AddIdentityCore<IdentityUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Configurar rutas de login
-builder.Services.ConfigureApplicationCookie(options =>
+// AutenticaciÃ³n: cookie local + OIDC via Keycloak
+builder.Services.AddAuthentication(options =>
 {
-    options.LoginPath = "/Identity/Account/Login";
-    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath = "/login";
+    options.AccessDeniedPath = "/access-denied";
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+})
+.AddOpenIdConnect(options =>
+{
+    options.Authority = builder.Configuration["Keycloak:Authority"];
+    options.ClientId = builder.Configuration["Keycloak:ClientId"];
+    options.ClientSecret = builder.Configuration["Keycloak:ClientSecret"];
+    options.ResponseType = "code";
+    options.SaveTokens = true;
+    options.GetClaimsFromUserInfoEndpoint = true;
+    options.RequireHttpsMetadata = true;
+
+    options.Scope.Clear();
+    options.Scope.Add("openid");
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+
+    // sub â†’ NameIdentifier (para que UserManager.GetUserId(User) funcione)
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        NameClaimType = "preferred_username",
+        RoleClaimType = ClaimTypes.Role
+    };
+
+    options.Events = new OpenIdConnectEvents
+    {
+        OnTokenValidated = ctx =>
+        {
+            // Keycloak pone los roles en el access_token, no en el id_token.
+            // Lo leemos directamente del token endpoint response.
+            var accessToken = ctx.TokenEndpointResponse?.AccessToken;
+            if (accessToken == null) return Task.CompletedTask;
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(accessToken);
+            var resourceClaim = jwt.Claims.FirstOrDefault(c => c.Type == "resource_access");
+            if (resourceClaim == null) return Task.CompletedTask;
+
+            var identity = (ClaimsIdentity)ctx.Principal!.Identity!;
+            try
+            {
+                var doc = JsonDocument.Parse(resourceClaim.Value);
+                if (doc.RootElement.TryGetProperty("refugiohuellas", out var client) &&
+                    client.TryGetProperty("roles", out var roles))
+                {
+                    foreach (var role in roles.EnumerateArray())
+                    {
+                        var name = role.GetString();
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            // Capitalizar para que coincida con [Authorize(Roles = "Admin")]
+                            var normalized = char.ToUpper(name[0]) + name[1..];
+                            identity.AddClaim(new Claim(ClaimTypes.Role, normalized));
+                        }
+                    }
+                }
+            }
+            catch { /* claim malformado, ignorar */ }
+
+            return Task.CompletedTask;
+        },
+
+        OnRedirectToIdentityProviderForSignOut = ctx =>
+        {
+            // Redirigir al logout de Keycloak y volver al inicio
+            var keycloakLogout = $"{builder.Configuration["Keycloak:Authority"]}/protocol/openid-connect/logout";
+            ctx.ProtocolMessage.IssuerAddress = keycloakLogout;
+            return Task.CompletedTask;
+        }
+    };
 });
 
+// ----------------- InyecciÃ³n de dependencias (SOLID + Patrones) -----------------
 
-// JWT
-var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSection["Key"]!;
-var jwtIssuer = jwtSection["Issuer"]!;
-var jwtAudience = jwtSection["Audience"]!;
-
-builder.Services.AddAuthentication()
-    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-            )
-        };
-    });
-
-
-
-
-
-
-
-// ----------------- Inyección de dependencias (SOLID + Patrones) -----------------
-
-// Repository pattern (abstraer EF Core)
 builder.Services.AddScoped<IDogRepository, EfDogRepository>();
 builder.Services.AddScoped<ITraitRepository, EfTraitRepository>();
 builder.Services.AddScoped<IUserTraitResponseRepository, EfUserTraitResponseRepository>();
 
-// Strategy pattern: reglas por rasgo (se agregan sin tocar el servicio principal)
 builder.Services.AddScoped<ITraitRule, HousingTypeRule>();
 builder.Services.AddScoped<ITraitRule, SpaceRule>();
 builder.Services.AddScoped<ITraitRule, TimeRule>();
 builder.Services.AddScoped<ITraitRule, NoiseToleranceRule>();
 builder.Services.AddScoped<ITraitRule, ActivityLevelRule>();
 
-// Factory Method: resolver regla por clave
 builder.Services.AddScoped<ITraitRuleFactory, TraitRuleFactory>();
-
-// Servicio de compatibilidad (DIP: controladores dependen de ICompatibilityService)
 builder.Services.AddScoped<ICompatibilityService, CompatibilityService>();
-
-// SRP: almacenamiento de fotos aislado del controlador
 builder.Services.AddScoped<IPhotoStorage, LocalPhotoStorage>();
-
 
 var dpKeysPath = "/var/data/dpkeys";
 Directory.CreateDirectory(dpKeysPath);
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(dpKeysPath));
-
-
-//Activar Cors para React
 
 builder.Services.AddCors(options =>
 {
@@ -130,7 +158,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Migraciones + seed SOLO cuando tú lo habilites explícitamente
 if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("RUN_SEEDER") == "true")
 {
     try
@@ -142,7 +169,6 @@ if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("RUN_S
         app.Logger.LogError(ex, "DbSeeder failed. App will continue without seeding.");
     }
 }
-
 
 var uploadRoot = Environment.GetEnvironmentVariable("UPLOAD_ROOT");
 if (!string.IsNullOrWhiteSpace(uploadRoot))
@@ -156,8 +182,6 @@ if (!string.IsNullOrWhiteSpace(uploadRoot))
     });
 }
 
-
-//  Pipeline de ejecución
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -169,7 +193,6 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
@@ -179,23 +202,17 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
-// Ruta raíz: si hay sesión => /Dogs, si no => login
 app.MapGet("/", () => Results.Redirect("/Dogs"));
 
-
-
 app.MapControllers();
-
 
 app.MapFallbackToFile("/app", "app/index.html");
 app.MapFallbackToFile("/app/{*path:nonfile}", "app/index.html");
 
-// Ruta por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Dogs}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 app.MapRazorPages();
 
