@@ -1,5 +1,6 @@
 # RefugioHuellas 🐾
 
+
 RefugioHuellas es una aplicación web ASP.NET Core MVC (.NET 9) para la gestión de adopciones de perros en un refugio.
 Incluye autenticación con Identity, control de roles (Admin / Usuario), evaluación de compatibilidad entre adoptante y perro, y administración completa de los registros.
 
