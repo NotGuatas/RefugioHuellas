@@ -214,6 +214,4 @@ app.MapControllerRoute(
     pattern: "{controller=Dogs}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-app.MapRazorPages();
-
 app.Run();
