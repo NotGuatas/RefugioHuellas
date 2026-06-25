@@ -8,6 +8,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using RefugioHuellas.Data;
 using RefugioHuellas.Data.Repositories;
+using RefugioHuellas.Services;
 using RefugioHuellas.Services.Compatibility;
 using RefugioHuellas.Services.Compatibility.Rules;
 using RefugioHuellas.Services.Storage;
@@ -139,6 +140,7 @@ builder.Services.AddScoped<ITraitRule, ActivityLevelRule>();
 builder.Services.AddScoped<ITraitRuleFactory, TraitRuleFactory>();
 builder.Services.AddScoped<ICompatibilityService, CompatibilityService>();
 builder.Services.AddScoped<IPhotoStorage, LocalPhotoStorage>();
+builder.Services.AddHttpClient<EscaladaECService>();
 
 var dpKeysPath = "/var/data/dpkeys";
 Directory.CreateDirectory(dpKeysPath);
