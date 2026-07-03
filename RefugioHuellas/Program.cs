@@ -53,6 +53,35 @@ builder.Services.AddAuthentication(options =>
     options.AccessDeniedPath = "/access-denied";
     options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+    options.Events.OnValidatePrincipal = async context =>
+    {
+        var accessToken = context.Properties.GetTokenValue("access_token");
+        if (string.IsNullOrEmpty(accessToken)) return;
+
+        var config = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        var httpClient = context.HttpContext.RequestServices
+            .GetRequiredService<IHttpClientFactory>().CreateClient();
+
+        var response = await httpClient.PostAsync(
+            $"{config["Keycloak:Authority"]}/protocol/openid-connect/token/introspect",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["token"] = accessToken!,
+                ["client_id"] = config["Keycloak:ClientId"]!,
+                ["client_secret"] = config["Keycloak:ClientSecret"]!
+            }));
+
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        bool activa = json.TryGetProperty("active", out var p) && p.GetBoolean();
+
+        if (!activa)
+        {
+            context.RejectPrincipal();
+            await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await context.HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+        }
+    };
 })
 .AddOpenIdConnect(options =>
 {
